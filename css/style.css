@@ -16,7 +16,7 @@
 }
 
 body {
-    font-family: "Poppins", sans-serif;
+    font-family: "Poppins";
     min-height: 100vh;
     overflow-x: hidden;
     color: var(--text-primary);
