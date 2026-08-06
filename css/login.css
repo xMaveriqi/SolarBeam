@@ -188,7 +188,7 @@
     background: none;
     color: #FFFFFF;
     font-size: 15px;
-    font-family: "Poppins", sans-serif;
+    font-family: "Poppins";
 }
 
 .input-field input::placeholder{
@@ -219,7 +219,7 @@
     align-items: center;
     justify-content: center;
     gap: 12px;
-    font-family: "Poppins", sans-serif;
+    font-family: "Poppins";
     font-size: 16px;
     font-weight: 600;
     color: #0F172A;
