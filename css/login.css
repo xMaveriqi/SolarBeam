@@ -84,21 +84,21 @@
     padding: 12px 22px;
     margin-top: 18px;
     border-radius: 50px;
-    background: rgba(34,197,94,0.08);
-    border: 1px solid rgba(34,197,94,0.25);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
 }
 
 .status-light{
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #22C55E;
-    box-shadow: 0 0 12px #22C55E, 0 0 24px #22C55E;
+    background: #FBBF24;
+    box-shadow: 0 0 12px #F59E0B, 0 0 24px #F59E0B;
     animation: pulse 1.5s infinite;
 }
 
 .system-status p{
-    color: #22C55E;
+    color: #FBBF24;
     font-height: 600;
     font-size: 15px;
 }
@@ -148,6 +148,8 @@
 .input-box label{
     display: block;
     margin-bottom: 10px;
+    margin-top: 10px;
+    gap: 5px;
     color: #E2E8F0;
     font-size:15px;
     font-weight: 500;
@@ -211,7 +213,7 @@
 .login-button{
     width: 100%;
     height: 58px;
-    margin-top: 12px;
+    margin-top: 24px;
     border: none;
     border-radius: 16px;
     cursor: pointer;
@@ -295,7 +297,6 @@
 }
 
 .login-card footer{
-    margin-top: 35px;
     padding-top: 25px;
     border-top: 1px solid rgba(255,255,255,0.08);
     text-align: center;
