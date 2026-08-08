@@ -1,169 +1,68 @@
-/* ==========================================================
-   SOLAR BEAM
-   sidebar.js
-   Versão 2.0
-========================================================== */
-
 document.addEventListener("DOMContentLoaded", () => {
-
     const sidebar = document.getElementById("sidebar");
-    const toggleButton = document.getElementById("toggleSidebar");
+    const toggle = document.getElementById("toggleSidebar");
+    if (!sidebar || !toggle) return;
 
-    if (!sidebar || !toggleButton) {
-        console.error("Sidebar ou botão não encontrado.");
-        return;
+    const KEY = "solarbeam_sidebar_collapsed";
+
+    function setCollapsed(collapsed, save = true) {
+        sidebar.classList.toggle("collapsed", collapsed);
+        sidebar.classList.toggle("open", !collapsed);
+        toggle.setAttribute("aria-expanded", String(!collapsed));
+        if (save) localStorage.setItem(KEY, String(collapsed));
     }
 
-    /* ==========================================
-        RESTAURAR ESTADO DA SIDEBAR
-    ========================================== */
+    // Desktop: remember the user's choice.
+    // Mobile/tablet: also starts collapsed so the sun is always available.
+    const saved = localStorage.getItem(KEY);
+    setCollapsed(saved === null ? false : saved === "true", false);
 
-    const sidebarCollapsed =
-        localStorage.getItem("sidebarCollapsed");
-
-    if (sidebarCollapsed === "true") {
-        sidebar.classList.add("collapsed");
-    }
-
-
-    /* ==========================================
-        BOTÃO DA SIDEBAR
-    ========================================== */
-
-    toggleButton.addEventListener("click", (event) => {
-
-        event.stopPropagation();
-
-        /*
-         * Desktop:
-         * adiciona/remove "collapsed"
-         *
-         * Mobile:
-         * adiciona/remove "open"
-         */
-
-        if (window.innerWidth <= 992) {
-
-            sidebar.classList.toggle("open");
-
-        } else {
-
-            sidebar.classList.toggle("collapsed");
-
-            localStorage.setItem(
-                "sidebarCollapsed",
-                sidebar.classList.contains("collapsed")
-            );
-
-        }
-
+    toggle.addEventListener("click", (event) => {
+        event.preventDefault();
+        const collapsed = !sidebar.classList.contains("collapsed");
+        setCollapsed(collapsed);
     });
 
-
-    /* ==========================================
-        FECHAR SIDEBAR NO MOBILE
-    ========================================== */
-
-    document.addEventListener("click", (event) => {
-
-        if (window.innerWidth > 992) {
-            return;
-        }
-
-        if (
-            sidebar.classList.contains("open") &&
-            !sidebar.contains(event.target) &&
-            !toggleButton.contains(event.target)
-        ) {
-
-            sidebar.classList.remove("open");
-
-        }
-
-    });
-
-
-    /* ==========================================
-        LINKS DA SIDEBAR
-    ========================================== */
-
-    const currentPage =
-        window.location.pathname
-            .split("/")
-            .pop() || "dashboard.html";
-
-    const links =
-        document.querySelectorAll(".sidebar nav a");
-
-
-    links.forEach(link => {
-
-        const href =
-            link.getAttribute("href");
-
-        if (href === currentPage) {
-
-            link.parentElement.classList.add("active");
-
-        } else {
-
-            link.parentElement.classList.remove("active");
-
-        }
-
-        /*
-         * No celular, fechar a sidebar
-         * depois de clicar em uma página.
-         */
-
-        link.addEventListener("click", () => {
-
-            if (window.innerWidth <= 992) {
-
-                sidebar.classList.remove("open");
-
-            }
-
+    // The logo name itself returns to Dashboard.
+    const logoName = sidebar.querySelector(".logo-name");
+    if (logoName) {
+        logoName.addEventListener("click", () => {
+            window.location.href = "dashboard.html";
         });
-
-    });
-
-
-    /* ==========================================
-        AJUSTAR AO REDIMENSIONAR A JANELA
-    ========================================== */
-
-    window.addEventListener("resize", () => {
-
-        if (window.innerWidth > 992) {
-
-            sidebar.classList.remove("open");
-
-        }
-
-    });
-
-
-    /* ==========================================
-        USUARIO LOGADO E LOGOUT
-    ========================================== */
-
-    const nomeUsuario = localStorage.getItem("solarbeam_usuario");
-    const userNameEl = document.querySelector(".user-info b");
-    if (nomeUsuario && userNameEl) {
-        userNameEl.textContent = nomeUsuario.charAt(0).toUpperCase() + nomeUsuario.slice(1);
     }
 
-    const sairLink = document.querySelector(".sidebar-footer a");
-    if (sairLink) {
-        sairLink.addEventListener("click", (event) => {
+    // Mark current page.
+    const current = (location.pathname.split("/").pop() || "dashboard.html").toLowerCase();
+    sidebar.querySelectorAll(".sidebar-nav a").forEach(link => {
+        const href = (link.getAttribute("href") || "").split("/").pop().toLowerCase();
+        const item = link.closest("li");
+        if (item) item.classList.toggle("active", href === current);
+    });
+
+    // Admin visibility is based on the role saved by the login flow.
+    const role = (localStorage.getItem("solarbeam_role") || "").toLowerCase();
+    sidebar.querySelectorAll("[data-admin-only]").forEach(item => {
+        item.style.display = role === "admin" ? "" : "none";
+    });
+
+    // Logout must clear the local session instead of merely navigating.
+    const logout = document.getElementById("logoutLink");
+    if (logout) {
+        logout.addEventListener("click", (event) => {
             event.preventDefault();
             if (typeof solarbeamLogout === "function") {
                 solarbeamLogout();
             } else {
+                localStorage.removeItem("solarbeam_token");
+                localStorage.removeItem("solarbeam_usuario");
+                localStorage.removeItem("solarbeam_role");
                 window.location.href = "index.html";
             }
         });
     }
 
+    // Escape collapses the menu, but it stays visible as the narrow icon rail.
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setCollapsed(true);
+    });
 });

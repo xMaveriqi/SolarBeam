@@ -1,40 +1,112 @@
-document.addEventListener("DOMContentLoaded", () => {
+/* ==========================================================
+   SOLAR BEAM
+   dashboard.js
+   Versão 2.0
+   Sem simulador fake
+========================================================== */
 
+document.addEventListener("DOMContentLoaded", () => {
     const btnPumpOn = document.getElementById("btnPumpOn");
     const btnPumpOff = document.getElementById("btnPumpOff");
     const btnRefresh = document.getElementById("btnRefresh");
+    const btnDevices = document.getElementById("btnDevices");
+    const btnHistory = document.getElementById("btnHistory");
     const btnSettings = document.getElementById("btnSettings");
+
     const soilHumidity = document.getElementById("soilHumidity");
     const temperature = document.getElementById("temperature");
     const battery = document.getElementById("battery");
     const pumpStatus = document.getElementById("pumpStatus");
     const lastUpdate = document.getElementById("lastUpdate");
 
-    const simuladorForm = document.getElementById("simuladorForm");
-    const simuladorMensagem = document.getElementById("simuladorMensagem");
+    const espStatus = document.getElementById("espStatus");
+    const wifiStatus = document.getElementById("wifiStatus");
+    const solarStatus = document.getElementById("solarStatus");
+
+    const notificationButton = document.getElementById("notificationButton");
+    const notificationBadge = document.getElementById("notificationBadge");
+    const notificationsPanel = document.getElementById("notificationsPanel");
+    const dashboardNotifications = document.getElementById("dashboardNotifications");
+    const clearNotifications = document.getElementById("clearNotifications");
 
     carregarStatus();
 
-    btnPumpOn.addEventListener("click", () => enviarComando(true));
-    btnPumpOff.addEventListener("click", () => enviarComando(false));
-    btnRefresh.addEventListener("click", carregarStatus);
-    btnSettings.addEventListener("click", () => {
+    btnPumpOn?.addEventListener("click", () => enviarComando(true));
+    btnPumpOff?.addEventListener("click", () => enviarComando(false));
+    btnRefresh?.addEventListener("click", carregarStatus);
+
+    btnDevices?.addEventListener("click", () => {
+        window.location.href = "dispositivos.html";
+    });
+
+    btnHistory?.addEventListener("click", () => {
+        window.location.href = "historico.html";
+    });
+
+    btnSettings?.addEventListener("click", () => {
         window.location.href = "configuracoes.html";
     });
 
-    if (simuladorForm) {
-        simuladorForm.addEventListener("submit", enviarLeituraSimulada);
-    }
+    notificationButton?.addEventListener("click", () => {
+        if (!notificationsPanel) return;
+
+        const isHidden = notificationsPanel.hasAttribute("hidden");
+
+        if (isHidden) {
+            notificationsPanel.removeAttribute("hidden");
+            notificationButton.setAttribute("aria-expanded", "true");
+
+            notificationsPanel.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        } else {
+            notificationsPanel.setAttribute("hidden", "");
+            notificationButton.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    clearNotifications?.addEventListener("click", () => {
+        if (!dashboardNotifications) return;
+
+        dashboardNotifications.innerHTML = `
+            <div class="empty-notification">
+                <i class="fa-regular fa-bell-slash"></i>
+                <span>Nenhum alerta no momento.</span>
+            </div>
+        `;
+
+        atualizarBadge(0);
+    });
 
     async function carregarStatus() {
+        if (!btnRefresh) return;
+
         btnRefresh.disabled = true;
-        btnRefresh.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Atualizando...`;
+        btnRefresh.innerHTML = `
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Atualizando...</span>
+        `;
 
         try {
-            const resposta = await fetch(`${API_URL}/api/status`);
+            const resposta = await fetch(`${API_URL}/api/status`, {
+                headers: typeof solarbeamAuthHeaders === "function"
+                    ? solarbeamAuthHeaders()
+                    : {}
+            });
+
+            if (resposta.status === 401) {
+                tratarSessaoExpirada();
+                return;
+            }
 
             if (resposta.status === 404) {
-                mostrarMensagemSimulador("Nenhuma leitura no banco ainda. Use o simulador abaixo para gerar uma.", "warning");
+                atualizarInterfaceSemDados();
+                adicionarAlerta(
+                    "Sem leituras",
+                    "Ainda não há uma leitura registrada para o dispositivo.",
+                    "warning"
+                );
                 return;
             }
 
@@ -44,84 +116,258 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dados = await resposta.json();
 
-            soilHumidity.textContent = `${dados.umidade}%`;
-            temperature.textContent = "--°C"; // sensor de temperatura ainda nao implementado no ESP32
-            battery.textContent = `${dados.bateria}V`;
-            pumpStatus.textContent = dados.bomba ? "Ligada" : "Desligada";
-            lastUpdate.textContent = dados.ultimaAtualizacao;
+            atualizarInterface(dados);
+            analisarAlertas(dados);
 
         } catch (err) {
             console.error("Erro ao buscar status:", err);
-            alert("Não foi possível conectar à API. Ela pode estar 'acordando' (Render free) — tente de novo em alguns segundos.");
+
+            atualizarStatusSistema(
+                espStatus,
+                "Offline",
+                "offline"
+            );
+
+            atualizarStatusSistema(
+                wifiStatus,
+                "Indisponível",
+                "offline"
+            );
+
+            adicionarAlerta(
+                "Servidor indisponível",
+                "Não foi possível atualizar os dados do dispositivo.",
+                "error"
+            );
+
         } finally {
             btnRefresh.disabled = false;
-            btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Atualizar Sensores`;
+            btnRefresh.innerHTML = `
+                <i class="fa-solid fa-rotate"></i>
+                <span>Atualizar Sensores</span>
+            `;
         }
+    }
+
+    function atualizarInterface(dados) {
+        if (soilHumidity) {
+            soilHumidity.textContent =
+                dados.umidade != null ? `${dados.umidade}%` : "--";
+        }
+
+        if (temperature) {
+            temperature.textContent =
+                dados.temperatura != null ? `${dados.temperatura}°C` : "--";
+        }
+
+        if (battery) {
+            battery.textContent =
+                dados.bateria != null ? `${dados.bateria}V` : "--";
+        }
+
+        if (pumpStatus) {
+            pumpStatus.textContent =
+                dados.bomba ? "Ligada" : "Desligada";
+        }
+
+        if (lastUpdate) {
+            lastUpdate.textContent =
+                dados.ultimaAtualizacao || "--";
+        }
+
+        atualizarStatusSistema(espStatus, "Online", "online");
+
+        if (wifiStatus) {
+            atualizarStatusSistema(
+                wifiStatus,
+                dados.wifi === false ? "Desconectado" : "Conectado",
+                dados.wifi === false ? "offline" : "online"
+            );
+        }
+
+        if (solarStatus) {
+            atualizarStatusSistema(
+                solarStatus,
+                dados.energiaSolar === false ? "Inativa" : "Ativa",
+                dados.energiaSolar === false ? "warning" : "online"
+            );
+        }
+    }
+
+    function atualizarInterfaceSemDados() {
+        if (soilHumidity) soilHumidity.textContent = "--";
+        if (temperature) temperature.textContent = "--";
+        if (battery) battery.textContent = "--";
+        if (pumpStatus) pumpStatus.textContent = "--";
+        if (lastUpdate) lastUpdate.textContent = "--";
+
+        atualizarStatusSistema(espStatus, "Sem dados", "warning");
+        atualizarStatusSistema(wifiStatus, "Sem dados", "warning");
+        atualizarStatusSistema(solarStatus, "Sem dados", "warning");
+    }
+
+    function atualizarStatusSistema(element, texto, classe) {
+        if (!element) return;
+
+        element.textContent = texto;
+        element.classList.remove("online", "offline", "warning");
+        element.classList.add(classe);
     }
 
     async function enviarComando(ligar) {
+        const button = ligar ? btnPumpOn : btnPumpOff;
+
+        if (button) {
+            button.disabled = true;
+        }
+
         try {
             const resposta = await fetch(`${API_URL}/api/comando`, {
                 method: "POST",
-                headers: solarbeamAuthHeaders(),
-                body: JSON.stringify({ bomba: ligar }),
+                headers: typeof solarbeamAuthHeaders === "function"
+                    ? solarbeamAuthHeaders()
+                    : { "Content-Type": "application/json" },
+                body: JSON.stringify({ bomba: ligar })
             });
 
             if (resposta.status === 401) {
-                alert("Sessão expirada. Faça login novamente.");
-                solarbeamLogout();
+                tratarSessaoExpirada();
                 return;
             }
 
-            const dados = await resposta.json();
+            const dados = await resposta.json().catch(() => ({}));
 
             if (!resposta.ok) {
-                alert(dados.erro || "Erro ao enviar comando.");
-                return;
+                throw new Error(dados.erro || "Erro ao enviar comando.");
             }
 
-            alert(ligar ? "Comando para ligar a bomba enviado!" : "Comando para desligar a bomba enviado!");
+            adicionarAlerta(
+                ligar ? "Bomba ligada" : "Bomba desligada",
+                ligar
+                    ? "O comando para ligar a bomba foi enviado."
+                    : "O comando para desligar a bomba foi enviado.",
+                ligar ? "success" : "warning"
+            );
+
+            await carregarStatus();
 
         } catch (err) {
             console.error("Erro ao enviar comando:", err);
-            alert("Não foi possível conectar ao servidor.");
+
+            adicionarAlerta(
+                "Falha no comando",
+                err.message || "Não foi possível enviar o comando.",
+                "error"
+            );
+        } finally {
+            if (button) {
+                button.disabled = false;
+            }
         }
     }
 
-    async function enviarLeituraSimulada(event) {
-        event.preventDefault();
+    function analisarAlertas(dados) {
+        // Estes alertas são baseados somente nos dados recebidos.
+        // Os limites de bateria/umidade serão tornados configuráveis
+        // quando a página de configurações for implementada.
 
-        const umidade = parseFloat(document.getElementById("simUmidade").value);
-        const nivelAgua = parseFloat(document.getElementById("simNivelAgua").value);
-        const bateria = parseFloat(document.getElementById("simBateria").value);
-        const bomba = document.getElementById("simBomba").value === "true";
+        if (dados.bateria != null && Number(dados.bateria) < 3.6) {
+            adicionarAlerta(
+                "Bateria baixa",
+                `A bateria está em ${dados.bateria}V.`,
+                "warning"
+            );
+        }
 
-        try {
-            const resposta = await fetch(`${API_URL}/api/sensores`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ umidade, nivelAgua, bateria, bomba }),
-            });
+        if (dados.bomba === false) {
+            adicionarAlerta(
+                "Bomba desligada",
+                "A bomba do dispositivo está desligada.",
+                "warning"
+            );
+        }
+    }
 
-            const dados = await resposta.json();
+    function adicionarAlerta(titulo, mensagem, tipo = "warning") {
+        if (!dashboardNotifications) return;
 
-            if (!resposta.ok) {
-                mostrarMensagemSimulador(dados.erro || "Erro ao enviar leitura.", "error");
-                return;
+        const vazio = dashboardNotifications.querySelector(".empty-notification");
+
+        if (vazio) {
+            vazio.remove();
+        }
+
+        const item = document.createElement("div");
+        item.className = `dashboard-notification ${tipo}`;
+
+        const icon =
+            tipo === "error"
+                ? "fa-triangle-exclamation"
+                : tipo === "success"
+                    ? "fa-circle-check"
+                    : "fa-circle-exclamation";
+
+        item.innerHTML = `
+            <div class="notification-icon">
+                <i class="fa-solid ${icon}"></i>
+            </div>
+            <div class="notification-content">
+                <strong>${escaparHTML(titulo)}</strong>
+                <span>${escaparHTML(mensagem)}</span>
+            </div>
+            <button type="button" class="notification-close" aria-label="Fechar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
+
+        item.querySelector(".notification-close")?.addEventListener("click", () => {
+            item.remove();
+
+            if (!dashboardNotifications.children.length) {
+                dashboardNotifications.innerHTML = `
+                    <div class="empty-notification">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        <span>Nenhum alerta no momento.</span>
+                    </div>
+                `;
             }
 
-            mostrarMensagemSimulador("Leitura simulada enviada com sucesso!", "success");
-            carregarStatus();
+            atualizarBadge(dashboardNotifications.querySelectorAll(".dashboard-notification").length);
+        });
 
-        } catch (err) {
-            console.error("Erro ao enviar leitura simulada:", err);
-            mostrarMensagemSimulador("Não foi possível conectar ao servidor.", "error");
+        dashboardNotifications.prepend(item);
+
+        const total = dashboardNotifications.querySelectorAll(".dashboard-notification").length;
+        atualizarBadge(total);
+    }
+
+    function atualizarBadge(total) {
+        if (!notificationBadge) return;
+
+        notificationBadge.textContent = String(total);
+        notificationBadge.hidden = total === 0;
+    }
+
+    function tratarSessaoExpirada() {
+        adicionarAlerta(
+            "Sessão expirada",
+            "Faça login novamente para continuar.",
+            "error"
+        );
+
+        if (typeof solarbeamLogout === "function") {
+            solarbeamLogout();
+        } else {
+            window.location.href = "index.html";
         }
     }
 
-    function mostrarMensagemSimulador(texto, tipo) {
-        if (!simuladorMensagem) return;
-        simuladorMensagem.textContent = texto;
-        simuladorMensagem.className = `simulador-mensagem ${tipo}`;
+    function escaparHTML(valor) {
+        return String(valor)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
 });

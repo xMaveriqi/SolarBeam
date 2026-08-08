@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Beam | Sensores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+<div class="page-container">
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <button id="toggleSidebar" class="logo-icon" type="button"
+                        aria-label="Abrir ou fechar menu" aria-expanded="true"
+                        title="Abrir ou fechar menu">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+                <a class="logo-name" href="dashboard.html" aria-label="Solar Beam">
+                    Solar <span>Beam</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+            <ul>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+                <li><a href="dispositivos.html"><i class="fa-solid fa-microchip"></i><span>Dispositivos</span></a></li>
+                <li><a href="sensores.html"><i class="fa-solid fa-seedling"></i><span>Sensores</span></a></li>
+                <li><a href="irrigacao.html"><i class="fa-solid fa-droplet"></i><span>Irrigação</span></a></li>
+                <li><a href="energia.html"><i class="fa-solid fa-solar-panel"></i><span>Energia</span></a></li>
+                <li><a href="historico.html"><i class="fa-solid fa-chart-line"></i><span>Histórico</span></a></li>
+                <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+                <li data-admin-only><a href="usuarios.html"><i class="fa-solid fa-users"></i><span>Usuários</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="index.html" id="logoutLink">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+<main class="page-main">
+<header class="page-header">
+<div><h1>Sensores</h1><p>Monitoramento das leituras atuais.</p></div>
+</header>
+<section class="page-grid">
+<article class="page-card full">
+<h2>Leituras atuais</h2>
+<p>Dados recebidos do dispositivo selecionado.</p>
+<div class="metric-grid">
+<div class="metric"><span>Umidade do solo</span><strong id="humidity">--</strong></div>
+<div class="metric"><span>Temperatura</span><strong id="temperature">--</strong></div>
+<div class="metric"><span>Nível de água</span><strong id="water">--</strong></div>
+<div class="metric"><span>Última atualização</span><strong id="updated">--</strong></div>
+</div>
+<div class="button-row"><button class="secondary-button" id="refresh" type="button"><i class="fa-solid fa-rotate"></i> Atualizar</button></div>
+<p class="message" id="message"></p>
+</article>
+</section>
+</main>
+</div>
+<script src="js/config.js"></script>
+<script src="js/auth-guard.js"></script>
+<script src="js/sensores.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>

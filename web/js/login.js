@@ -68,11 +68,9 @@ document.addEventListener("DOMContentLoaded", () => {
             showSuccess("Login realizado com sucesso!");
 
             setTimeout(() => {
-                if (dados.role === "admin") {
-                    window.location.href = "dashboard.html";
-                } else {
-                    window.location.href = "dispositivos.html";
-                }
+                // Todo usuário autenticado começa pelo Dashboard.
+                // As permissões continuam sendo controladas pelo cargo.
+                window.location.href = "dashboard.html";
             }, 800);
 
         } catch (err) {
