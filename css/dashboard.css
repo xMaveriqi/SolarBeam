@@ -60,14 +60,14 @@
 .logo {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
 }
 
 .logo-icon{
-    width: 58px;
-    height: 58px;
-    min-width: 58px;
-    margin-left: -10px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-left: 0;
     border: none;
     border-radius: 50%;
     display: flex;
@@ -93,7 +93,10 @@
 
 .logo h2{
     color: white;
-    font-size: 28px;
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    white-space: nowrap;
 }
 
 .logo span{
