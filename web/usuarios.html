@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Beam | Usuários</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body class="users-page">
+    <div class="dashboard-container">
+
+        <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <button id="toggleSidebar" class="logo-icon" type="button"
+                        aria-label="Abrir ou fechar menu" aria-expanded="true"
+                        title="Abrir ou fechar menu">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+                <a class="logo-name" href="dashboard.html" aria-label="Solar Beam">
+                    Solar <span>Beam</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+            <ul>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+                <li><a href="dispositivos.html"><i class="fa-solid fa-microchip"></i><span>Dispositivos</span></a></li>
+                <li><a href="energia.html"><i class="fa-solid fa-solar-panel"></i><span>Energia</span></a></li>
+                <li><a href="historico.html"><i class="fa-solid fa-chart-line"></i><span>Histórico</span></a></li>
+                <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+                <li data-admin-only><a href="usuarios.html"><i class="fa-solid fa-users"></i><span>Usuários</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="index.html" id="logoutLink">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1>Usuários</h1>
+                    <p>Gerencie quem tem acesso ao Solar Beam</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <b id="loggedUserName">Administrador</b>
+                            <small id="loggedUserRole">Online</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="dashboard-grid">
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Novo Usuário</h2>
+                    </div>
+                    <form id="novoUsuarioForm" class="simulador-form">
+                        <div class="simulador-campo">
+                            <label for="novoNome">Nome</label>
+                            <input type="text" id="novoNome" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="novoUsuario">Usuário (login)</label>
+                            <input type="text" id="novoUsuario" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="novaSenha">Senha</label>
+                            <input type="text" id="novaSenha" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="novoRole">Tipo</label>
+                            <select id="novoRole">
+                                <option value="user">Usuário comum</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="btnCriarUsuario">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Criar Usuário
+                        </button>
+                    </form>
+                    <p id="usuarioMensagem" class="simulador-mensagem"></p>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Usuários Cadastrados</h2>
+                    </div>
+                    <div class="status-list" id="listaUsuarios">
+                        <p style="color: var(--text-secondary); font-size: 13px;">Carregando...</p>
+                    </div>
+                    <div class="button-row"><button class="secondary-button" id="btnBackup" type="button"><i class="fa-solid fa-download"></i> Exportar backup</button></div>
+                </article>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script>solarbeamExigirAdmin();</script>
+    <script src="js/usuarios.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>

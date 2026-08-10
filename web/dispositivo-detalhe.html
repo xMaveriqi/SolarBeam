@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Beam | Dispositivo</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+
+        <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <button id="toggleSidebar" class="logo-icon" type="button"
+                        aria-label="Abrir ou fechar menu" aria-expanded="true"
+                        title="Abrir ou fechar menu">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+                <a class="logo-name" href="dashboard.html" aria-label="Solar Beam">
+                    Solar <span>Beam</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+            <ul>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+                <li><a href="dispositivos.html"><i class="fa-solid fa-microchip"></i><span>Dispositivos</span></a></li>
+                <li><a href="energia.html"><i class="fa-solid fa-solar-panel"></i><span>Energia</span></a></li>
+                <li><a href="historico.html"><i class="fa-solid fa-chart-line"></i><span>Histórico</span></a></li>
+                <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+                <li data-admin-only><a href="usuarios.html"><i class="fa-solid fa-users"></i><span>Usuários</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="index.html" id="logoutLink">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1 id="tituloDispositivo">Dispositivo</h1>
+                    <p>Leituras e controle deste ESP32</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-microchip"></i>
+                        </div>
+                        <div>
+                            <b id="codigoTopbar">--</b>
+                            <small>Código do dispositivo</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="cards-grid">
+                <div class="card">
+                    <div class="card-icon humidity"><i class="fa-solid fa-seedling"></i></div>
+                    <div class="card-info">
+                        <h3>Umidade do Solo</h3>
+                        <span id="soilHumidity">--%</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon temperature"><i class="fa-solid fa-water"></i></div>
+                    <div class="card-info">
+                        <h3>Nível de Água</h3>
+                        <span id="nivelAgua">--%</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon battery"><i class="fa-solid fa-battery-three-quarters"></i></div>
+                    <div class="card-info">
+                        <h3>Bateria</h3>
+                        <span id="battery">--V</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon pump"><i class="fa-solid fa-droplet"></i></div>
+                    <div class="card-info">
+                        <h3>Bomba</h3>
+                        <span id="pumpStatus">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-grid">
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Status</h2>
+                    </div>
+                    <div class="status-list">
+                        <div class="status item">
+                            <span>Última Atualização</span>
+                            <b id="lastUpdate">--</b>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel header">
+                        <h2>Ações Rápidas</h2>
+                    </div>
+                    <div class="actions-grid">
+                        <button id="btnPumpOn">
+                            <i class="fa-solid fa-play"></i>
+                            Ligar Bomba
+                        </button>
+                        <button id="btnPumpOff">
+                            <i class="fa-solid fa-stop"></i>
+                            Desligar Bomba
+                        </button>
+                        <button id="btnRefresh">
+                            <i class="fa-solid fa-rotate"></i>
+                            Atualizar
+                        </button>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Simulador de Leitura (ESP32 fake)</h2>
+                        <p style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Testa sem o hardware — a leitura já sai vinculada a este dispositivo</p>
+                    </div>
+                    <form id="simuladorForm" class="simulador-form">
+                        <div class="simulador-campo">
+                            <label for="simUmidade">Umidade (%)</label>
+                            <input type="number" id="simUmidade" value="55" min="0" max="100" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="simNivelAgua">Nível de água (%)</label>
+                            <input type="number" id="simNivelAgua" value="80" min="0" max="100" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="simBateria">Bateria (V)</label>
+                            <input type="number" id="simBateria" value="4.1" step="0.01" min="0" max="5" required>
+                        </div>
+                        <div class="simulador-campo">
+                            <label for="simBomba">Bomba</label>
+                            <select id="simBomba">
+                                <option value="false">Desligada</option>
+                                <option value="true">Ligada</option>
+                            </select>
+                        </div>
+                        <button type="submit" id="btnEnviarSimulacao">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            Enviar Leitura Falsa
+                        </button>
+                    </form>
+                    <p id="simuladorMensagem" class="simulador-mensagem"></p>
+                </article>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/dispositivo-detalhe.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --solar-yellow: #FBBF24;
+    --solar-green: #22C55E;
+    --solar-blue: #3B82F6;
+    --background: #0F172A;
+    --card: #1E293B;
+    --text-primary: #F8FAFC;
+    --text-secondary: #CBD5E1;
+
+}
+
+body {
+    font-family: "Poppins";
+    min-height: 100vh;
+    overflow-x: hidden;
+    color: var(--text-primary);
+    background: linear-gradient(135deg,#020617,#0F172A,#111827);
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.35;
+    z-index: -1;
+}
+
+body::before {
+    background: var(--solar-yellow);
+    top: -150px;
+    left: -150px;
+    animation: lightMoveOne 10s infinite alternate;
+}
+
+body::after {
+    background: var(--solar-blue);
+    bottom: -150px;
+    right: -150px;
+    animation: lightMoveTwo 12s infinite alternate;
+}
+
+@keyframes lightMoveOne {
+    from {
+        transform: translate(0,0);
+    }
+    to {
+        transform: translate(80px,120px);
+    }
+}
+
+@keyframes lightMoveTwo {
+    from {
+        transform: translate(0,0);
+    }
+    to {
+        transform: translate(-100px,-80px);
+    }
+}
+
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.login-page::before,
+.login-page::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(90px);
+    opacity: 0.45;
+}
+
+.login-page::before {
+    width: 280px;
+    height: 280px;
+    background: #FBBF24;
+    top: -100px;
+    left: -100px;
+}
+
+.login-page::after {
+    width: 320px;
+    height: 320px;
+    background: #3B82F6;
+    bottom: -120px;
+    right: -120px;
+}
+
+.brand-section,
+.login-section {
+    width: 50%;
+    min-height: 650px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.brand-content {
+    max-width: 500px;
+    animation: fadeLeft 1s ease;
+}
+
+@keyframes fadeLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.login-section {
+    animation: fadeRight 1s ease;
+}
+
+@keyframes fadeRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media(max-width: 1024px) {
+    .login-page {
+        flex-direction: column;
+    }
+    .brand-section,
+    .login-section {
+        width: 100%;
+        min-height: auto;
+    }
+    .brand-section {
+        padding-bottom: 40px;
+    }
+}
+
+@media(max-width: 600px) {
+    .login-page {
+        padding: 20px;
+    }
+    .brand-section {
+        display: none;
+    }
+    .login-section {
+        min-height: 100vh;
+    }
+}

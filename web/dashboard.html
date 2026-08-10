@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Beam | Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+
+        <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <button id="toggleSidebar" class="logo-icon" type="button"
+                        aria-label="Abrir ou fechar menu" aria-expanded="true"
+                        title="Abrir ou fechar menu">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+                <a class="logo-name" href="dashboard.html" aria-label="Solar Beam">
+                    Solar <span>Beam</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+            <ul>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+                <li><a href="dispositivos.html"><i class="fa-solid fa-microchip"></i><span>Dispositivos</span></a></li>
+                <li><a href="energia.html"><i class="fa-solid fa-solar-panel"></i><span>Energia</span></a></li>
+                <li><a href="historico.html"><i class="fa-solid fa-chart-line"></i><span>Histórico</span></a></li>
+                <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+                <li data-admin-only><a href="usuarios.html"><i class="fa-solid fa-users"></i><span>Usuários</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="index.html" id="logoutLink">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p>Bem-vindo ao Solar Beam</p>
+                </div>
+
+                <div class="topbar-right">
+                    <select id="dispositivoSelect" hidden style="background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 6px 10px; font-size: 13px;"></select>
+
+                    <button
+                        class="notification-button"
+                        id="notificationButton"
+                        type="button"
+                        aria-label="Abrir notificações"
+                        aria-expanded="false"
+                        title="Notificações">
+                        <i class="fa-regular fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge" hidden>0</span>
+                    </button>
+
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+
+                        <div>
+                            <b id="loggedUserName">Administrador</b>
+                            <small id="loggedUserRole">Online</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="panel" id="semDispositivoPanel" hidden style="text-align:center; padding: 40px 20px; margin-bottom: 20px;">
+                <i class="fa-solid fa-microchip" style="font-size: 32px; color: var(--text-secondary); margin-bottom: 14px; display:block;"></i>
+                <h2 style="margin-bottom: 8px;">Nenhum ESP32 conectado</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 18px;">Adicione um dispositivo para começar a ver dados e controlar a bomba.</p>
+                <a href="dispositivos.html" style="display:inline-block; background: var(--solar-green); color:#0B1220; font-weight:600; border-radius:8px; padding:10px 18px; text-decoration:none;">
+                    <i class="fa-solid fa-plus"></i> Adicionar dispositivo
+                </a>
+            </section>
+
+            <section class="admin-system-panel" id="adminSystemPanel" hidden>
+                <div class="panel-header">
+                    <div>
+                        <h2>Visão administrativa</h2>
+                        <p class="panel-subtitle">Monitoramento de todos os usuários e ESPs.</p>
+                    </div>
+                    <button class="panel-action" id="refreshAdminSystems" type="button"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+                </div>
+                <div class="admin-metrics" id="adminMetrics"></div>
+                <div class="admin-system-list" id="adminSystemList"></div>
+                <div class="admin-danger-zone">
+                    <div><strong>Limpar dados do sistema</strong><small>Remove usuários, ESPs, leituras, comandos e configurações. Sua conta admin atual será preservada.</small></div>
+                    <button class="danger-button" id="clearDatabase" type="button"><i class="fa-solid fa-trash"></i> Limpar banco</button>
+                </div>
+                <p class="message" id="adminSystemMessage"></p>
+            </section>
+
+            <section class="dashboard-content" id="dashboardContent" hidden>
+
+                <section class="cards-grid" aria-label="Resumo do dispositivo">
+
+                    <div class="card">
+                        <div class="card-icon humidity">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Umidade do Solo</h3>
+                            <span id="soilHumidity">--</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon temperature">
+                            <i class="fa-solid fa-temperature-half"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Temperatura</h3>
+                            <span id="temperature">--</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon battery">
+                            <i class="fa-solid fa-battery-three-quarters"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Bateria</h3>
+                            <span id="battery">--</span>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon pump">
+                            <i class="fa-solid fa-droplet"></i>
+                        </div>
+                        <div class="card-info">
+                            <h3>Bomba</h3>
+                            <span id="pumpStatus">--</span>
+                        </div>
+                    </div>
+
+                </section>
+
+                <section class="dashboard-grid">
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Status do Sistema</h2>
+                                <p class="panel-subtitle">Estado atual da comunicação</p>
+                            </div>
+                        </div>
+
+                        <div class="status-list">
+                            <div class="status-item">
+                                <span>ESP32</span>
+                                <b id="espStatus" class="online">Verificando...</b>
+                            </div>
+
+                            <div class="status-item">
+                                <span>Wi-Fi</span>
+                                <b id="wifiStatus" class="online">Verificando...</b>
+                            </div>
+
+                            <div class="status-item">
+                                <span>Energia Solar</span>
+                                <b id="solarStatus" class="online">Verificando...</b>
+                            </div>
+
+                            <div class="status-item">
+                                <span>Última Atualização</span>
+                                <b id="lastUpdate">--</b>
+                            </div>
+                            <div class="status-item">
+                                <span>Firmware</span>
+                                <b id="firmwareVersion">--</b>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Ações Rápidas</h2>
+                                <p class="panel-subtitle">Controle e acesso rápido</p>
+                            </div>
+                        </div>
+
+                        <div class="actions-grid">
+                            <button id="btnPumpOn" type="button">
+                                <i class="fa-solid fa-play"></i>
+                                <span>Ligar Bomba</span>
+                            </button>
+
+                            <button id="btnPumpOff" type="button">
+                                <i class="fa-solid fa-stop"></i>
+                                <span>Desligar Bomba</span>
+                            </button>
+
+                            <button id="btnRefresh" type="button">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>Atualizar Sensores</span>
+                            </button>
+
+                            <button id="btnDevices" type="button">
+                                <i class="fa-solid fa-microchip"></i>
+                                <span>Dispositivos</span>
+                            </button>
+
+                            <button id="btnHistory" type="button">
+                                <i class="fa-solid fa-chart-line"></i>
+                                <span>Histórico</span>
+                            </button>
+
+                            <button id="btnSettings" type="button">
+                                <i class="fa-solid fa-gear"></i>
+                                <span>Configurações</span>
+                            </button>
+                        </div>
+                    </article>
+
+                </section>
+
+                <section class="panel dashboard-notifications-panel" id="notificationsPanel" hidden>
+                    <div class="panel-header">
+                        <div>
+                            <h2>Alertas do Sistema</h2>
+                            <p class="panel-subtitle">Avisos relacionados ao dispositivo</p>
+                        </div>
+
+                        <button id="clearNotifications" class="panel-action" type="button">
+                            Limpar
+                        </button>
+                    </div>
+
+                    <div id="dashboardNotifications" class="dashboard-notifications">
+                        <div class="empty-notification">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <span>Nenhum alerta no momento.</span>
+                        </div>
+                    </div>
+                </section>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>

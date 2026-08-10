@@ -1,0 +1,80 @@
+name: Build ESP32 firmware
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+    paths:
+      - "esp32-firmware/**"
+      - ".github/workflows/build-firmware.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32
+
+      - name: Install libraries
+        run: arduino-cli lib install ArduinoJson
+
+      - name: Compile firmware
+        run: |
+          mkdir -p build/solarbeam_firmware build/artifacts
+          cp esp32-firmware/solarbeam_firmware.ino build/solarbeam_firmware/solarbeam_firmware.ino
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32 \
+            --output-dir build/artifacts \
+            build/solarbeam_firmware
+
+      - name: Locate boot_app0
+        id: boot
+        run: |
+          BOOT_APP0=$(find "$HOME/.arduino15" -name boot_app0.bin -print -quit)
+          test -n "$BOOT_APP0"
+          echo "path=$BOOT_APP0" >> "$GITHUB_OUTPUT"
+
+      - name: Merge flash image
+        run: |
+          python -m pip install esptool
+          esptool --chip esp32 merge-bin \
+            -o build/solarbeam-firmware-merged.bin \
+            --flash-mode dio \
+            --flash-freq 40m \
+            --flash-size 4MB \
+            0x1000 build/artifacts/solarbeam_firmware.ino.bootloader.bin \
+            0x8000 build/artifacts/solarbeam_firmware.ino.partitions.bin \
+            0xe000 "${{ steps.boot.outputs.path }}" \
+            0x10000 build/artifacts/solarbeam_firmware.ino.bin
+
+      - name: Generate checksum
+        run: sha256sum build/solarbeam-firmware-merged.bin > build/solarbeam-firmware-merged.bin.sha256
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solarbeam-firmware-${{ github.sha }}
+          path: |
+            build/solarbeam-firmware-merged.bin
+            build/solarbeam-firmware-merged.bin.sha256
+
+      - name: Publish tagged firmware release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/solarbeam-firmware-merged.bin
+            build/solarbeam-firmware-merged.bin.sha256

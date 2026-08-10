@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Beam | Dispositivos</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+
+        <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-logo">
+            <div class="logo">
+                <button id="toggleSidebar" class="logo-icon" type="button"
+                        aria-label="Abrir ou fechar menu" aria-expanded="true"
+                        title="Abrir ou fechar menu">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+                <a class="logo-name" href="dashboard.html" aria-label="Solar Beam">
+                    Solar <span>Beam</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Navegação principal">
+            <ul>
+                <li><a href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+                <li><a href="dispositivos.html"><i class="fa-solid fa-microchip"></i><span>Dispositivos</span></a></li>
+                <li><a href="energia.html"><i class="fa-solid fa-solar-panel"></i><span>Energia</span></a></li>
+                <li><a href="historico.html"><i class="fa-solid fa-chart-line"></i><span>Histórico</span></a></li>
+                <li><a href="configuracoes.html"><i class="fa-solid fa-gear"></i><span>Configurações</span></a></li>
+                <li data-admin-only><a href="usuarios.html"><i class="fa-solid fa-users"></i><span>Usuários</span></a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="index.html" id="logoutLink">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Sair</span>
+        </a>
+    </div>
+</aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1>Configuração do ESP32</h1>
+                    <p>Cadastre, grave o firmware e gerencie seus dispositivos.</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div>
+                            <b id="loggedUserName">Usuário</b>
+                            <small id="loggedUserRole">Online</small>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="dashboard-grid">
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Adicionar Novo ESP</h2>
+                    </div>
+                    <form id="novoDispositivoForm" class="simulador-form">
+                        <div class="simulador-campo" style="grid-column: 1 / -1;">
+                            <label for="nomeDispositivo">Nome do dispositivo</label>
+                            <input type="text" id="nomeDispositivo" placeholder="Ex: Horta dos fundos" required>
+                        </div>
+                        <button type="submit" id="btnAdicionarDispositivo">
+                            <i class="fa-solid fa-plus"></i>
+                            Adicionar ESP
+                        </button>
+                    </form>
+                    <p id="dispositivoMensagem" class="simulador-mensagem"></p>
+                    <div id="codigoGerado" style="display:none; margin-top: 14px; padding: 14px; border-radius: 10px; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25);">
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">Código do dispositivo (grave no firmware do ESP32):</p>
+                        <code id="codigoTexto" style="font-size: 16px; font-weight: 600; color: var(--solar-green);"></code>
+                    </div>
+
+                    <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.08);">
+                        <h3 style="font-size: 15px; margin-bottom: 6px;">Provisionar ESP32 via USB</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+                            Para o Wi-Fi, use primeiro o portal cativo da rede `SolarBeam`. A conexão USB serve para gravar o firmware e o código do dispositivo.
+                        </p>
+
+                        <div class="connection-guide" aria-label="Tutorial de conexão do ESP32">
+                            <div class="connection-guide-step"><span>01</span><div><strong>Prepare o navegador</strong><small>Use Chrome ou Edge em HTTPS ou localhost.</small></div></div>
+                            <div class="connection-guide-step"><span>02</span><div><strong>Escolha o firmware</strong><small>Selecione o arquivo .bin mesclado do SolarBeam.</small></div></div>
+                            <div class="connection-guide-step"><span>03</span><div><strong>Conecte por USB</strong><small>Use um cabo de dados. Se necessário, segure BOOT.</small></div></div>
+                            <div class="connection-guide-step"><span>04</span><div><strong>Grave e aguarde</strong><small>Não remova o cabo; o código será enviado depois.</small></div></div>
+                        </div>
+
+                        <div class="simulador-campo" style="margin-bottom: 12px;">
+                            <label for="seletorDispositivo">Dispositivo a provisionar</label>
+                            <select id="seletorDispositivo"></select>
+                        </div>
+
+                        <div class="simulador-campo" style="margin-bottom: 12px;">
+                            <label for="arquivoFirmware">Firmware compilado (.bin)</label>
+                            <input id="arquivoFirmware" type="file" accept=".bin,application/octet-stream">
+                            <small style="display:block; color:var(--text-secondary); margin-top:6px;">Use um binário mesclado com bootloader, partições e aplicação.</small>
+                            <a href="https://github.com/xMaveriqi/SolarBeam/releases/latest/download/solarbeam-firmware-merged.bin" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;color:var(--solar-green);font-size:12px;">Baixar firmware oficial mais recente</a>
+                            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;color:var(--text-secondary);font-size:12px;">
+                                <input id="apagarConfiguracoes" type="checkbox" style="width:auto;">
+                                Limpar Wi-Fi e código antigo (somente instalação nova)
+                            </label>
+                        </div>
+
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button type="button" id="btnConectar" style="background:none; border:1px solid rgba(34,197,94,0.3); color: var(--solar-green); border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer;">
+                                <i class="fa-solid fa-plug"></i> Conectar ESP32
+                            </button>
+                            <button type="button" id="btnEnviarCodigo" disabled style="background:none; border:1px solid rgba(255,255,255,0.1); color: var(--text-secondary); border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer;">
+                                <i class="fa-solid fa-paper-plane"></i> Enviar Código
+                            </button>
+                            <button type="button" id="btnGravarFirmware" disabled style="background:var(--solar-green); border:none; color:#0B1220; border-radius:8px; padding:8px 14px; font-size:13px; cursor:pointer; font-weight:600;">
+                                <i class="fa-solid fa-microchip"></i> Gravar Firmware
+                            </button>
+                        </div>
+                        <div class="progress" style="margin-top:12px;"><div class="progress-bar" id="firmwareProgress"></div></div>
+                        <p id="provisionarMensagem" class="simulador-mensagem"></p>
+                        <pre id="serialLog" style="background: rgba(0,0,0,.3); border-radius: 10px; padding: 12px; font-size: 12px; color: #94A3B8; min-height: 100px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; margin-top: 10px;"></pre>
+                    </div>
+                </article>
+
+                <article class="panel">
+                    <div class="panel-header">
+                        <h2>Dispositivos Conectados</h2>
+                    </div>
+                    <div id="listaDispositivos">
+                        <p style="color: var(--text-secondary); font-size: 13px;">Carregando...</p>
+                    </div>
+                </article>
+
+            </section>
+        </main>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script type="module" src="https://unpkg.com/esptool-js@0.4.0/bundle.js"></script>
+    <script src="js/dispositivos.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html>
