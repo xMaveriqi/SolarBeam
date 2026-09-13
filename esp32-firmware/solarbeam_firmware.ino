@@ -8,7 +8,7 @@
 #include <DHT.h>
 
 const char* API_URL = "https://api-solarbeam.onrender.com";
-const char* VERSAO_FIRMWARE = "1.0.0";
+const char* VERSAO_FIRMWARE = "1.1.0";
 const int PINO_UMIDADE = 34;     // sensor de umidade do solo (entrada analogica)
 const int PINO_NIVEL_AGUA = 35;  // sensor de nivel de agua (entrada analogica)
 const int PINO_BATERIA = 33;     // leitura da tensao da bateria (entrada analogica)
@@ -48,6 +48,7 @@ float umidadeMinima = 30.0;
 unsigned long tempoBombaMs = 10000;
 String modoOperacao = "manual";
 bool primeiraLeituraPendente = true;
+bool estadoBomba = false;
 
 unsigned long inicioTentativaWifi = 0;
 const unsigned long TEMPO_LIMITE_RECONEXAO_MS = 60000;
@@ -347,11 +348,11 @@ void definirBomba(bool ligada) {
   bool nivelAtivo = RELE_ATIVO_EM_LOW ? LOW : HIGH;
   bool nivelInativo = RELE_ATIVO_EM_LOW ? HIGH : LOW;
   digitalWrite(PINO_RELE_BOMBA, ligada ? nivelAtivo : nivelInativo);
+  estadoBomba = ligada;
 }
 
 bool bombaLigada() {
-  int nivelAtivo = RELE_ATIVO_EM_LOW ? LOW : HIGH;
-  return digitalRead(PINO_RELE_BOMBA) == nivelAtivo;
+  return estadoBomba;
 }
 
 void atualizarConfiguracao() {
@@ -496,8 +497,8 @@ void verificarComandoPendente() {
       return;
     }
 
-    if (!doc["bomba"].isNull()) {
-      bool ligar = doc["bomba"];
+    if (doc["bomba"].is<bool>()) {
+      bool ligar = doc["bomba"].as<bool>();
       definirBomba(ligar);
       Serial.println("Comando aplicado: bomba " + String(ligar ? "LIGADA" : "DESLIGADA"));
 
@@ -505,8 +506,8 @@ void verificarComandoPendente() {
       // por um tempo, mesmo em modo automatico. Sem isso, executarIrrigacaoAutomatica()
       // pode ligar a bomba de novo poucos milissegundos depois, na mesma volta do loop,
       // dando a impressao de que o botao "Desligar" nao funciona.
-      inicioIrrigacaoAutomatica = 0;
-      bloqueioAutomaticoAte = millis() + BLOQUEIO_APOS_COMANDO_MANUAL_MS;
+      inicioIrrigacaoAutomatica = ligar ? millis() : 0;
+      bloqueioAutomaticoAte = ligar ? 0 : millis() + BLOQUEIO_APOS_COMANDO_MANUAL_MS;
 
       int idComando = doc["id"];
       confirmarComandoExecutado(idComando);
