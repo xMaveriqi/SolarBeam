@@ -46,6 +46,7 @@ float umidadeMinima = 30.0;
 unsigned long tempoBombaMs = 10000;
 String modoOperacao = "manual";
 bool primeiraLeituraPendente = true;
+bool automacaoBloqueadaPorComando = false;
 
 unsigned long inicioTentativaWifi = 0;
 const unsigned long TEMPO_LIMITE_RECONEXAO_MS = 60000;
@@ -121,8 +122,9 @@ void loop() {
       }
     }
     if (millis() - ultimaVerificacaoComando > INTERVALO_VERIFICACAO_COMANDO_MS) {
-      verificarComandoPendente();
+      bool comandoAplicado = verificarComandoPendente();
       ultimaVerificacaoComando = millis();
+      if (comandoAplicado) return;
     }
     executarIrrigacaoAutomatica();
   }
@@ -382,7 +384,7 @@ void atualizarConfiguracao() {
 }
 
 void executarIrrigacaoAutomatica() {
-  if (!configuracaoDisponivel || modoOperacao != "automatico") {
+  if (!configuracaoDisponivel || modoOperacao != "automatico" || automacaoBloqueadaPorComando) {
     inicioIrrigacaoAutomatica = 0;
     return;
   }
@@ -467,7 +469,7 @@ bool enviarLeitura() {
   return codigoResposta >= 200 && codigoResposta < 300;
 }
 
-void verificarComandoPendente() {
+bool verificarComandoPendente() {
   WiFiClientSecure cliente;
   cliente.setInsecure();
   HTTPClient http;
@@ -483,16 +485,19 @@ void verificarComandoPendente() {
     if (erro) {
       Serial.println("Resposta de comando invalida: " + resposta);
       http.end();
-      return;
+      return false;
     }
 
     if (!doc["bomba"].isNull()) {
       bool ligar = doc["bomba"];
+      automacaoBloqueadaPorComando = !ligar;
       definirBomba(ligar);
       Serial.println("Comando aplicado: bomba " + String(ligar ? "LIGADA" : "DESLIGADA"));
 
       int idComando = doc["id"];
       confirmarComandoExecutado(idComando);
+      http.end();
+      return true;
     }
   } else if (codigoResposta <= 0) {
     Serial.println("Erro HTTPS ao consultar comando: " + http.errorToString(codigoResposta));
@@ -501,6 +506,7 @@ void verificarComandoPendente() {
   }
 
   http.end();
+  return false;
 }
 
 void confirmarComandoExecutado(int id) {

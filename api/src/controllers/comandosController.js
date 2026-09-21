@@ -81,6 +81,11 @@ async function obterComandoPendente(req, res) {
     }
 
     const comando = resultado.rows[0];
+    await db.execute({
+      sql: `UPDATE comandos SET executado = 1
+            WHERE executado = 0 AND dispositivo_id = ? AND id < ?`,
+      args: [dispositivoId, comando.id],
+    });
     res.json({ id: comando.id, bomba: Boolean(comando.bomba) });
   } catch (err) {
     console.error('Erro ao buscar comando:', err);

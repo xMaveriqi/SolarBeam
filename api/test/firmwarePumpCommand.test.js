@@ -13,3 +13,14 @@ test('o firmware nao desliga a bomba automaticamente em modo manual', () => {
     'O firmware não deve forçar desligamento automático quando o modo é manual.'
   );
 });
+
+test('um comando aplicado nao e sobrescrito pela automacao no mesmo ciclo', () => {
+  assert.match(firmware, /bool comandoAplicado = verificarComandoPendente\(\);/);
+  assert.match(firmware, /if \(comandoAplicado\) return;/);
+});
+
+test('o desligamento manual bloqueia a automacao ate um novo comando', () => {
+  assert.match(firmware, /bool automacaoBloqueadaPorComando = false;/);
+  assert.match(firmware, /modoOperacao != "automatico" \|\| automacaoBloqueadaPorComando/);
+  assert.match(firmware, /automacaoBloqueadaPorComando = !ligar;/);
+});
