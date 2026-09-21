@@ -20,7 +20,7 @@ test('um comando aplicado nao e sobrescrito pela automacao no mesmo ciclo', () =
 });
 
 test('o desligamento manual bloqueia a automacao ate um novo comando', () => {
-  assert.match(firmware, /bool automacaoBloqueadaPorComando = false;/);
-  assert.match(firmware, /modoOperacao != "automatico" \|\| automacaoBloqueadaPorComando/);
-  assert.match(firmware, /automacaoBloqueadaPorComando = !ligar;/);
+  assert.match(firmware, /unsigned long bloqueioAutomaticoAte = 0;/);
+  assert.match(firmware, /if \(millis\(\) < bloqueioAutomaticoAte\)/);
+  assert.match(firmware, /bloqueioAutomaticoAte = ligar \? 0 : millis\(\) \+ BLOQUEIO_APOS_COMANDO_MANUAL_MS;/);
 });

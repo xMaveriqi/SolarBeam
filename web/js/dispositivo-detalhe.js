@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function enviarComando(ligar) {
-        const botoes = [document.getElementById("pumpOn"), document.getElementById("pumpOff")].filter(Boolean);
+        const botoes = [document.getElementById("btnPumpOn"), document.getElementById("btnPumpOff")].filter(Boolean);
         botoes.forEach((botao) => { botao.disabled = true; });
         try {
             const resposta = await fetch(`${API_URL}/api/comando`, {
@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             alert(ligar ? "Comando para ligar a bomba enviado!" : "Comando para desligar a bomba enviado!");
+            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligada" : "Desligada";
 
         } catch (err) {
             console.error("Erro ao enviar comando:", err);

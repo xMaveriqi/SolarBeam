@@ -8,7 +8,7 @@
 #include <DHT.h>
 
 const char* API_URL = "https://api-solarbeam.onrender.com";
-const char* VERSAO_FIRMWARE = "1.0.0";
+const char* VERSAO_FIRMWARE = "1.1.0";
 const int PINO_UMIDADE = 34;     // sensor de umidade do solo (entrada analogica)
 const int PINO_NIVEL_AGUA = 35;  // sensor de nivel de agua (entrada analogica)
 const int PINO_BATERIA = 33;     // leitura da tensao da bateria (entrada analogica)
@@ -41,12 +41,14 @@ const unsigned long INTERVALO_VERIFICACAO_COMANDO_MS = 5000;
 unsigned long ultimaAtualizacaoConfig = 0;
 const unsigned long INTERVALO_CONFIG_MS = 60000;
 unsigned long inicioIrrigacaoAutomatica = 0;
+unsigned long bloqueioAutomaticoAte = 0;
+const unsigned long BLOQUEIO_APOS_COMANDO_MANUAL_MS = 60000;
 bool configuracaoDisponivel = false;
 float umidadeMinima = 30.0;
 unsigned long tempoBombaMs = 10000;
 String modoOperacao = "manual";
 bool primeiraLeituraPendente = true;
-bool automacaoBloqueadaPorComando = false;
+bool estadoBomba = false;
 
 unsigned long inicioTentativaWifi = 0;
 const unsigned long TEMPO_LIMITE_RECONEXAO_MS = 60000;
@@ -347,11 +349,11 @@ void definirBomba(bool ligada) {
   bool nivelAtivo = RELE_ATIVO_EM_LOW ? LOW : HIGH;
   bool nivelInativo = RELE_ATIVO_EM_LOW ? HIGH : LOW;
   digitalWrite(PINO_RELE_BOMBA, ligada ? nivelAtivo : nivelInativo);
+  estadoBomba = ligada;
 }
 
 bool bombaLigada() {
-  int nivelAtivo = RELE_ATIVO_EM_LOW ? LOW : HIGH;
-  return digitalRead(PINO_RELE_BOMBA) == nivelAtivo;
+  return estadoBomba;
 }
 
 void atualizarConfiguracao() {
@@ -384,8 +386,14 @@ void atualizarConfiguracao() {
 }
 
 void executarIrrigacaoAutomatica() {
-  if (!configuracaoDisponivel || modoOperacao != "automatico" || automacaoBloqueadaPorComando) {
+  if (!configuracaoDisponivel || modoOperacao != "automatico") {
     inicioIrrigacaoAutomatica = 0;
+    return;
+  }
+
+  if (millis() < bloqueioAutomaticoAte) {
+    // Ainda dentro da janela de respeito ao ultimo comando manual: nao
+    // reavalia religar/desligar automaticamente.
     return;
   }
 
@@ -411,21 +419,23 @@ void executarIrrigacaoAutomatica() {
 }
 
 float lerTemperatura() {
-  float temperatura = dht.readTemperature();
-  if (isnan(temperatura)) {
-    Serial.println("Falha ao ler temperatura do DHT11.");
-    return NAN;
+  for (int tentativa = 1; tentativa <= 3; tentativa++) {
+    float temperatura = dht.readTemperature();
+    if (!isnan(temperatura)) return temperatura;
+    Serial.println("Falha ao ler temperatura do DHT11 (tentativa " + String(tentativa) + "/3).");
+    delay(300);
   }
-  return temperatura;
+  return NAN;
 }
 
 float lerUmidadeAr() {
-  float umidadeAr = dht.readHumidity();
-  if (isnan(umidadeAr)) {
-    Serial.println("Falha ao ler umidade do ar do DHT11.");
-    return NAN;
+  for (int tentativa = 1; tentativa <= 3; tentativa++) {
+    float umidadeAr = dht.readHumidity();
+    if (!isnan(umidadeAr)) return umidadeAr;
+    Serial.println("Falha ao ler umidade do ar do DHT11 (tentativa " + String(tentativa) + "/3).");
+    delay(300);
   }
-  return umidadeAr;
+  return NAN;
 }
 
 bool enviarLeitura() {
@@ -488,11 +498,17 @@ bool verificarComandoPendente() {
       return false;
     }
 
-    if (!doc["bomba"].isNull()) {
-      bool ligar = doc["bomba"];
-      automacaoBloqueadaPorComando = !ligar;
+    if (doc["bomba"].is<bool>()) {
+      bool ligar = doc["bomba"].as<bool>();
       definirBomba(ligar);
       Serial.println("Comando aplicado: bomba " + String(ligar ? "LIGADA" : "DESLIGADA"));
+
+      // Um comando manual (principalmente "desligar") precisa ser respeitado
+      // por um tempo, mesmo em modo automatico. Sem isso, executarIrrigacaoAutomatica()
+      // pode ligar a bomba de novo poucos milissegundos depois, na mesma volta do loop,
+      // dando a impressao de que o botao "Desligar" nao funciona.
+      inicioIrrigacaoAutomatica = ligar ? millis() : 0;
+      bloqueioAutomaticoAte = ligar ? 0 : millis() + BLOQUEIO_APOS_COMANDO_MANUAL_MS;
 
       int idComando = doc["id"];
       confirmarComandoExecutado(idComando);

@@ -463,6 +463,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 ligar ? "success" : "warning"
             );
 
+            // Reflete o novo estado na hora: a leitura real do ESP32 só chega
+            // no próximo envio (até 60s depois), então sem isso o card de
+            // status continua mostrando o valor antigo por um tempo.
+            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligada" : "Desligada";
+
             await carregarStatus();
 
         } catch (err) {
