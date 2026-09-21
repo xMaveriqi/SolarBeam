@@ -8,7 +8,7 @@
 #include <DHT.h>
 
 const char* API_URL = "https://api-solarbeam.onrender.com";
-const char* VERSAO_FIRMWARE = "1.1.0";
+const char* VERSAO_FIRMWARE = "1.1.1";
 const int PINO_UMIDADE = 34;     // sensor de umidade do solo (entrada analogica)
 const int PINO_NIVEL_AGUA = 35;  // sensor de nivel de agua (entrada analogica)
 const int PINO_BATERIA = 33;     // leitura da tensao da bateria (entrada analogica)
@@ -41,8 +41,12 @@ const unsigned long INTERVALO_VERIFICACAO_COMANDO_MS = 5000;
 unsigned long ultimaAtualizacaoConfig = 0;
 const unsigned long INTERVALO_CONFIG_MS = 60000;
 unsigned long inicioIrrigacaoAutomatica = 0;
-unsigned long bloqueioAutomaticoAte = 0;
-const unsigned long BLOQUEIO_APOS_COMANDO_MANUAL_MS = 60000;
+
+// NOVO: em vez de um bloqueio por tempo (60s), usamos uma flag persistente.
+// Assim que o usuario manda "desligar" pelo painel, o modo automatico fica
+// suspenso ate que um novo comando manual de "ligar" seja recebido.
+bool bombaDesligadaManualmente = false;
+
 bool configuracaoDisponivel = false;
 float umidadeMinima = 30.0;
 unsigned long tempoBombaMs = 10000;
@@ -386,14 +390,11 @@ void atualizarConfiguracao() {
 }
 
 void executarIrrigacaoAutomatica() {
-  if (!configuracaoDisponivel || modoOperacao != "automatico") {
+  // Se o modo nao e automatico, ou se o usuario mandou "desligar" manualmente
+  // pelo painel, a irrigacao automatica fica suspensa ate um novo comando
+  // manual de "ligar" ser recebido (ver verificarComandoPendente()).
+  if (!configuracaoDisponivel || modoOperacao != "automatico" || bombaDesligadaManualmente) {
     inicioIrrigacaoAutomatica = 0;
-    return;
-  }
-
-  if (millis() < bloqueioAutomaticoAte) {
-    // Ainda dentro da janela de respeito ao ultimo comando manual: nao
-    // reavalia religar/desligar automaticamente.
     return;
   }
 
@@ -503,12 +504,11 @@ bool verificarComandoPendente() {
       definirBomba(ligar);
       Serial.println("Comando aplicado: bomba " + String(ligar ? "LIGADA" : "DESLIGADA"));
 
-      // Um comando manual (principalmente "desligar") precisa ser respeitado
-      // por um tempo, mesmo em modo automatico. Sem isso, executarIrrigacaoAutomatica()
-      // pode ligar a bomba de novo poucos milissegundos depois, na mesma volta do loop,
-      // dando a impressao de que o botao "Desligar" nao funciona.
+      // NOVO: em vez de um bloqueio temporario, marcamos a flag persistente.
+      // "Ligar" manualmente reativa o modo automatico; "desligar" o suspende
+      // ate o proximo comando manual de "ligar".
+      bombaDesligadaManualmente = !ligar;
       inicioIrrigacaoAutomatica = ligar ? millis() : 0;
-      bloqueioAutomaticoAte = ligar ? 0 : millis() + BLOQUEIO_APOS_COMANDO_MANUAL_MS;
 
       int idComando = doc["id"];
       confirmarComandoExecutado(idComando);
