@@ -91,8 +91,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            alert(ligar ? "Comando para ligar a bomba enviado!" : "Comando para desligar a bomba enviado!");
-            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligada" : "Desligada";
+            alert(ligar ? "Comando para ligar a bomba enviado ao ESP32!" : "Comando para desligar a bomba enviado ao ESP32!");
+            if (pumpStatus) pumpStatus.textContent = ligar ? "Comando enviado" : "Comando enviado";
+            window.setTimeout(() => carregarStatus(), 6500);
 
         } catch (err) {
             console.error("Erro ao enviar comando:", err);
@@ -108,6 +109,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const umidade = parseFloat(document.getElementById("simUmidade").value);
         const nivelAguaValor = parseFloat(document.getElementById("simNivelAgua").value);
         const bateria = parseFloat(document.getElementById("simBateria").value);
+        const temperatura = parseFloat(document.getElementById("simTemperatura").value);
+        const umidadeAr = parseFloat(document.getElementById("simUmidadeAr").value);
         const bomba = document.getElementById("simBomba").value === "true";
 
         if (!dispositivoToken) {
@@ -139,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            mostrarMensagemSimulador("Leitura simulada enviada com sucesso!", "success");
+            mostrarMensagemSimulador("Leitura de teste enviada. O controle da bomba continua sendo feito pelo comando real do ESP32.", "success");
             carregarStatus();
 
         } catch (err) {

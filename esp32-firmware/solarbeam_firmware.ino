@@ -202,43 +202,50 @@ void setup() {
 void loop() {
   lerSerial();
 
-  // Estas duas rodam SEMPRE, independente de Wi-Fi, API ou portal.
+  // A protecao da bomba roda SEMPRE, mesmo sem Wi-Fi/API.
   verificarSegurancaBomba();
-  executarIrrigacaoAutomatica();
+
+  // Um comando manual recebido do painel tem prioridade sobre a automacao
+  // neste ciclo. Assim, clicar em Ligar/Desligar nao e sobrescrito logo depois
+  // pela rotina automatica. A automacao continua funcionando sem internet.
+  bool comandoAplicado = false;
+
+  if (!modoConfigAtivo && codigoDispositivo != "") {
+    if (gerenciarWiFi()) {
+      // 1) Comandos primeiro: sao o que o usuario espera ver reagir.
+      if (apiLiberada() && millis() - ultimaVerificacaoComando >= INTERVALO_COMANDO_MS) {
+        ultimaVerificacaoComando = millis();
+        comandoAplicado = verificarComandoPendente();
+      }
+
+      // 2) Configuracao.
+      unsigned long intervaloConfig = configuracaoDisponivel ? INTERVALO_CONFIG_MS : INTERVALO_CONFIG_SEM_CFG_MS;
+      if (apiLiberada() && (primeiraConfigPendente || millis() - ultimaAtualizacaoConfig >= intervaloConfig)) {
+        primeiraConfigPendente = false;
+        ultimaAtualizacaoConfig = millis();
+        atualizarConfiguracao();
+      }
+
+      // 3) Telemetria.
+      if (apiLiberada() && (primeiraLeituraPendente || millis() - ultimoEnvio >= INTERVALO_ENVIO_MS)) {
+        if (enviarLeitura()) {
+          ultimoEnvio = millis();
+          primeiraLeituraPendente = false;
+        }
+      }
+    }
+  }
+
+  // A automacao continua localmente quando a rede cai. Se um comando acabou
+  // de ser aplicado, ela espera o proximo ciclo para avaliar novamente.
+  if (!modoConfigAtivo && !comandoAplicado) {
+    executarIrrigacaoAutomatica();
+  }
 
   if (modoConfigAtivo) {
     tratarPortal();
     delay(5);
     return;
-  }
-
-  if (!gerenciarWiFi()) {
-    delay(50);
-    return;
-  }
-
-  if (codigoDispositivo != "") {
-    // 1) Comandos primeiro: sao o que o usuario espera ver reagir.
-    if (apiLiberada() && millis() - ultimaVerificacaoComando >= INTERVALO_COMANDO_MS) {
-      ultimaVerificacaoComando = millis();
-      verificarComandoPendente();
-    }
-
-    // 2) Configuracao.
-    unsigned long intervaloConfig = configuracaoDisponivel ? INTERVALO_CONFIG_MS : INTERVALO_CONFIG_SEM_CFG_MS;
-    if (apiLiberada() && (primeiraConfigPendente || millis() - ultimaAtualizacaoConfig >= intervaloConfig)) {
-      primeiraConfigPendente = false;
-      ultimaAtualizacaoConfig = millis();
-      atualizarConfiguracao();
-    }
-
-    // 3) Telemetria.
-    if (apiLiberada() && (primeiraLeituraPendente || millis() - ultimoEnvio >= INTERVALO_ENVIO_MS)) {
-      if (enviarLeitura()) {
-        ultimoEnvio = millis();
-        primeiraLeituraPendente = false;
-      }
-    }
   }
 
   delay(10);
@@ -300,10 +307,9 @@ void executarIrrigacaoAutomatica() {
   float nivelAgua = lerNivelAgua();
 
   if (bombaLigada()) {
-    if (nivelAgua <= NIVEL_AGUA_MINIMO || agora - inicioBombaMs >= tempoBombaMs) {
+    if (agora - inicioBombaMs >= tempoBombaMs) {
       definirBomba(false);
-      Serial.println(nivelAgua <= NIVEL_AGUA_MINIMO ? "Bomba desligada: nivel de agua baixo." :
-        "Bomba desligada: tempo automatico concluido.");
+      Serial.println("Bomba desligada: tempo automatico concluido.");
     }
     return;
   }

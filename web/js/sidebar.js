@@ -50,10 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mark current page.
     const current = (location.pathname.split("/").pop() || "dashboard.html").toLowerCase();
+    const currentSection = current === "dispositivo-detalhe.html" ? "dispositivos.html" : current;
     sidebar.querySelectorAll(".sidebar-nav a").forEach(link => {
         const href = (link.getAttribute("href") || "").split("/").pop().toLowerCase();
         const item = link.closest("li");
-        if (item) item.classList.toggle("active", href === current);
+        if (item) item.classList.toggle("active", href === currentSection);
     });
 
     // Admin visibility is based on the role saved by the login flow.
@@ -61,6 +62,29 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.querySelectorAll("[data-admin-only]").forEach(item => {
         item.style.display = role === "admin" ? "" : "none";
     });
+
+    // Sensores, Irrigação e Energia só aparecem após configuração do firmware.
+    const linksDeDispositivo = new Set(["sensores.html", "irrigacao.html", "energia.html"]);
+    const roleAtual = (localStorage.getItem("solarbeam_role") || "").toLowerCase();
+    if (roleAtual !== "admin" && typeof API_URL !== "undefined" && typeof solarbeamAuthHeaders === "function") {
+        fetch(`${API_URL}/api/dispositivos`, { headers: solarbeamAuthHeaders() })
+            .then((resposta) => resposta.ok ? resposta.json() : [])
+            .then((dispositivos) => {
+                const configurado = dispositivos.some((d) => Number(d.firmware_configurado) === 1);
+                sidebar.querySelectorAll(".sidebar-nav a").forEach((link) => {
+                    const href = (link.getAttribute("href") || "").split("/").pop().toLowerCase();
+                    if (linksDeDispositivo.has(href)) {
+                        const item = link.closest("li");
+                        if (item) item.hidden = !configurado;
+                    }
+                });
+            }).catch(() => {
+                sidebar.querySelectorAll(".sidebar-nav a").forEach((link) => {
+                    const href = (link.getAttribute("href") || "").split("/").pop().toLowerCase();
+                    if (linksDeDispositivo.has(href) && link.closest("li")) link.closest("li").hidden = true;
+                });
+            });
+    }
 
     // Logout must clear the local session instead of merely navigating.
     const logout = document.getElementById("logoutLink");
