@@ -88,6 +88,7 @@ async function initDatabase() {
       modo TEXT NOT NULL DEFAULT 'automatico'
     )
   `);
+  await adicionarColunaSeNaoExistir('configuracoes', 'versao', 'versao INTEGER NOT NULL DEFAULT 0');
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS comandos (

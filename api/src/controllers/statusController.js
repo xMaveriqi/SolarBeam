@@ -78,6 +78,7 @@ async function obterStatus(req, res) {
       online,
       wifi,
       energiaSolar,
+      ultimaAtualizacaoMs: dataLeituraMs,
       ultimaAtualizacao: paraHorarioBrasilia(leitura.data_hora),
     });
   } catch (err) {

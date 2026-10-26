@@ -1,5 +1,5 @@
 /*
-  SolarBeam - Firmware v1.2.1
+  SolarBeam - Firmware v1.2.2
 
   O QUE MUDOU EM RELACAO A v1.2.0
   -------------------------------
@@ -47,7 +47,7 @@
 // CONFIGURACAO
 // ============================================================
 const char* API_URL = "https://api-solarbeam.onrender.com";
-const char* VERSAO_FIRMWARE = "1.2.1";
+const char* VERSAO_FIRMWARE = "1.2.2";
 
 const int PINO_UMIDADE = 34;     // sensor de umidade do solo (entrada analogica)
 const int PINO_NIVEL_AGUA = 35;  // sensor de nivel de agua (entrada analogica)
@@ -85,6 +85,7 @@ const int LEITURAS_SECO_PARA_LIGAR = 3;                       // leituras secas 
 const unsigned long ATRASO_INICIAL_AUTOMATICO_MS = 15000;     // espera apos ligar a placa
 const unsigned long PAUSA_ENTRE_IRRIGACOES_MS = 300000;       // 5 min p/ a agua chegar no sensor
 const unsigned long TEMPO_MAXIMO_BOMBA_MS = 1800000;          // seguranca: 30 min
+const unsigned long BLOQUEIO_APOS_COMANDO_MANUAL_MS = 300000; // evita religar logo apos desligamento manual
 
 const uint32_t TIMEOUT_CONEXAO_MS = 15000;
 const uint32_t TIMEOUT_RESPOSTA_MS = 25000;
@@ -133,15 +134,14 @@ unsigned long inicioBombaMs = 0;
 unsigned long ultimoFimIrrigacao = 0;
 unsigned long ultimaAvaliacaoAutomatica = 0;
 int contagemSeco = 0;
-// Quando o usuario manda "desligar" pelo painel, o modo automatico fica suspenso
-// ate um novo comando "ligar" (ou ate o modo ser trocado para automatico no painel).
-bool bombaDesligadaManualmente = false;
+unsigned long bloqueioAutomaticoAte = 0;
 
 // Configuracao vinda da API (fica salva na flash)
 bool configuracaoDisponivel = false;
 float umidadeMinima = 30.0;
 unsigned long tempoBombaMs = 10000;
 String modoOperacao = "manual";
+int versaoConfiguracao = -1;
 
 // ============================================================
 // PROTOTIPOS
@@ -175,13 +175,13 @@ void setup() {
   tokenDispositivo = preferencias.getString("token", "");
   wifiSSIDSalvo = preferencias.getString("wifi_ssid", "");
   wifiSenhaSalva = preferencias.getString("wifi_pass", "");
-  bombaDesligadaManualmente = preferencias.getBool("desl_man", false);
 
   configuracaoDisponivel = preferencias.getBool("cfg_ok", false);
   if (configuracaoDisponivel) {
     umidadeMinima = preferencias.getFloat("um_min", 30.0);
     tempoBombaMs = preferencias.getULong("tempo_ms", 10000);
     modoOperacao = preferencias.getString("modo", "manual");
+    versaoConfiguracao = preferencias.getInt("cfg_ver", -1);
   }
 
   if (codigoDispositivo == "") {
@@ -221,7 +221,8 @@ void loop() {
     // 1) Comandos primeiro: sao o que o usuario espera ver reagir.
     if (apiLiberada() && millis() - ultimaVerificacaoComando >= INTERVALO_COMANDO_MS) {
       ultimaVerificacaoComando = millis();
-      verificarComandoPendente();
+      bool comandoAplicado = verificarComandoPendente();
+      if (comandoAplicado) return;
     }
 
     // 2) Configuracao.
@@ -286,12 +287,16 @@ void verificarSegurancaBomba() {
 }
 
 void executarIrrigacaoAutomatica() {
-  if (!configuracaoDisponivel || modoOperacao != "automatico" || bombaDesligadaManualmente) {
+  if (!configuracaoDisponivel || modoOperacao != "automatico") {
     contagemSeco = 0;
     return;
   }
 
   unsigned long agora = millis();
+  if (bloqueioAutomaticoAte != 0 && (long)(agora - bloqueioAutomaticoAte) < 0) {
+    contagemSeco = 0;
+    return;
+  }
   if (agora < ATRASO_INICIAL_AUTOMATICO_MS) return;
   if (agora - ultimaAvaliacaoAutomatica < INTERVALO_AUTOMATICO_MS) return;
   ultimaAvaliacaoAutomatica = agora;
@@ -528,25 +533,26 @@ void atualizarConfiguracao() {
   float novaUmidade = constrain((float)(doc["umidadeMinima"] | 30.0), 0.0f, 100.0f);
   int segundos = doc["tempoBomba"] | 10;
   unsigned long novoTempo = (unsigned long)constrain(segundos, 1, 3600) * 1000UL;
+  int novaVersao = doc["versao"] | -1;
 
   bool mudou = !configuracaoDisponivel || novoModo != modoOperacao ||
-               novaUmidade != umidadeMinima || novoTempo != tempoBombaMs;
+               novaUmidade != umidadeMinima || novoTempo != tempoBombaMs ||
+               novaVersao != versaoConfiguracao;
 
-  // Trocar para "automatico" no painel retoma a irrigacao automatica.
-  if (novoModo == "automatico" && modoOperacao != "automatico" && bombaDesligadaManualmente) {
-    bombaDesligadaManualmente = false;
-    preferencias.putBool("desl_man", false);
-  }
+  // Um novo salvamento em automatico tambem retoma a automacao se o modo ja era automatico.
+  if (novoModo == "automatico" && novaVersao != versaoConfiguracao) bloqueioAutomaticoAte = 0;
 
   modoOperacao = novoModo;
   umidadeMinima = novaUmidade;
   tempoBombaMs = novoTempo;
+  versaoConfiguracao = novaVersao;
   configuracaoDisponivel = true;
 
   if (mudou) {
     preferencias.putString("modo", modoOperacao);
     preferencias.putFloat("um_min", umidadeMinima);
     preferencias.putULong("tempo_ms", tempoBombaMs);
+    preferencias.putInt("cfg_ver", versaoConfiguracao);
     preferencias.putBool("cfg_ok", true);
     Serial.println("Configuracao atualizada: modo " + modoOperacao + ", umidade minima " +
       String(umidadeMinima, 0) + "%, bomba " + String(tempoBombaMs / 1000) + " s");
@@ -637,12 +643,7 @@ int extrairId(JsonVariant v) {
 void aplicarComandoBomba(bool ligar) {
   definirBomba(ligar);
   contagemSeco = 0;
-
-  bool novoValor = !ligar;
-  if (novoValor != bombaDesligadaManualmente) {
-    bombaDesligadaManualmente = novoValor;
-    preferencias.putBool("desl_man", bombaDesligadaManualmente);
-  }
+  bloqueioAutomaticoAte = ligar ? 0 : millis() + BLOQUEIO_APOS_COMANDO_MANUAL_MS;
   Serial.println("Comando aplicado: bomba " + String(ligar ? "LIGADA" : "DESLIGADA"));
 }
 

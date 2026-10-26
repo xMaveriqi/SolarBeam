@@ -12,7 +12,7 @@ function tokenValido(esperado, recebido) {
 async function obterConfig(req, res) {
   try {
     let resultado = await db.execute(
-      `SELECT id, umidade_minima, tempo_bomba, modo FROM configuracoes ORDER BY id DESC LIMIT 1`
+      `SELECT id, umidade_minima, tempo_bomba, modo, versao FROM configuracoes ORDER BY id DESC LIMIT 1`
     );
 
     if (resultado.rows.length === 0) {
@@ -20,7 +20,7 @@ async function obterConfig(req, res) {
         `INSERT INTO configuracoes (umidade_minima, tempo_bomba, modo) VALUES (30, 10, 'automatico')`
       );
       resultado = await db.execute(
-        `SELECT id, umidade_minima, tempo_bomba, modo FROM configuracoes ORDER BY id DESC LIMIT 1`
+        `SELECT id, umidade_minima, tempo_bomba, modo, versao FROM configuracoes ORDER BY id DESC LIMIT 1`
       );
     }
 
@@ -29,6 +29,7 @@ async function obterConfig(req, res) {
       umidadeMinima: config.umidade_minima,
       tempoBomba: config.tempo_bomba,
       modo: config.modo,
+      versao: config.versao,
     });
   } catch (err) {
     console.error('Erro ao buscar config:', err);
@@ -54,12 +55,12 @@ async function atualizarConfig(req, res) {
 
     if (existente.rows.length === 0) {
       await db.execute({
-        sql: `INSERT INTO configuracoes (umidade_minima, tempo_bomba, modo) VALUES (?, ?, ?)`,
+        sql: `INSERT INTO configuracoes (umidade_minima, tempo_bomba, modo, versao) VALUES (?, ?, ?, 1)`,
         args: [umidadeMinima, tempoBomba, modo],
       });
     } else {
       await db.execute({
-        sql: `UPDATE configuracoes SET umidade_minima = ?, tempo_bomba = ?, modo = ? WHERE id = ?`,
+        sql: `UPDATE configuracoes SET umidade_minima = ?, tempo_bomba = ?, modo = ?, versao = versao + 1 WHERE id = ?`,
         args: [umidadeMinima, tempoBomba, modo, existente.rows[0].id],
       });
     }
@@ -93,18 +94,20 @@ async function obterConfigDispositivo(req, res) {
     }
 
     const resultado = await db.execute(
-      `SELECT umidade_minima, tempo_bomba, modo FROM configuracoes ORDER BY id DESC LIMIT 1`
+      `SELECT umidade_minima, tempo_bomba, modo, versao FROM configuracoes ORDER BY id DESC LIMIT 1`
     );
     const config = resultado.rows[0] || {
       umidade_minima: 30,
       tempo_bomba: 10,
       modo: 'automatico',
+      versao: 0,
     };
 
     res.json({
       umidadeMinima: config.umidade_minima,
       tempoBomba: config.tempo_bomba,
       modo: config.modo,
+      versao: config.versao,
     });
   } catch (err) {
     console.error('Erro ao buscar config do dispositivo:', err);

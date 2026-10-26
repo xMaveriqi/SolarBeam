@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const dispositivoSelect = document.getElementById("dispositivoSelect");
 
     let dispositivoAtual = null; // { id, nome, codigo }
+    let bombaPendente = null;
+    let ultimaLeituraBombaMs = 0;
 
     inicializar();
 
@@ -263,6 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function selecionarDispositivo(dispositivo) {
+        if (String(dispositivoAtual?.id) !== String(dispositivo.id)) {
+            bombaPendente = null;
+            ultimaLeituraBombaMs = 0;
+        }
         dispositivoAtual = dispositivo;
 
         if (dispositivoSelect && !dispositivoSelect.hidden) {
@@ -369,9 +375,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (waterLevel) waterLevel.textContent = dados.nivelAgua != null ? `${dados.nivelAgua}%` : "--";
         if (batteryAutonomy) batteryAutonomy.textContent = dados.autonomiaEstimada || "--";
 
+        const leituraBombaMs = Number(dados.ultimaAtualizacaoMs);
+        if (Number.isFinite(leituraBombaMs) && leituraBombaMs > 0) {
+            if (bombaPendente && leituraBombaMs > bombaPendente.leituraBaseMs) {
+                bombaPendente = null;
+            }
+            ultimaLeituraBombaMs = Math.max(ultimaLeituraBombaMs, leituraBombaMs);
+        }
+
         if (pumpStatus) {
-            pumpStatus.textContent =
-                dados.bomba ? "Ligada" : "Desligada";
+            pumpStatus.textContent = bombaPendente
+                ? (bombaPendente.ligada ? "Ligando..." : "Desligando...")
+                : (dados.bomba ? "Ligada" : "Desligada");
         }
 
         if (lastUpdate) {
@@ -463,10 +478,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 ligar ? "success" : "warning"
             );
 
-            // Reflete o novo estado na hora: a leitura real do ESP32 só chega
-            // no próximo envio (até 60s depois), então sem isso o card de
-            // status continua mostrando o valor antigo por um tempo.
-            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligada" : "Desligada";
+            bombaPendente = { ligada: ligar, leituraBaseMs: ultimaLeituraBombaMs };
+            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligando..." : "Desligando...";
 
             await carregarStatus();
 
