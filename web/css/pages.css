@@ -1262,3 +1262,13 @@ body {
         gap: 14px;
     }
 }
+
+
+/* Acabamento consistente entre páginas internas */
+.page-main .panel, .page-main .card, .page-main .settings-card, .page-main .form-card {
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+.page-main .panel:hover, .page-main .card:hover { border-color: rgba(34,197,94,.22); }
+.page-main input:focus-visible, .page-main select:focus-visible, .page-main textarea:focus-visible, .page-main button:focus-visible {
+    outline: 2px solid rgba(34,197,94,.72); outline-offset: 2px;
+}

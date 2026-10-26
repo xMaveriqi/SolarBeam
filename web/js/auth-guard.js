@@ -10,15 +10,6 @@
     const usuarioNormal = localStorage.getItem("solarbeam_role") !== "admin";
     const paginaDeSetup = paginaAtual === "dispositivos.html";
 
-    if (usuarioNormal && !paginaDeSetup && typeof API_URL !== "undefined") {
-        fetch(`${API_URL}/api/dispositivos`, { headers: solarbeamAuthHeaders() })
-            .then((resposta) => resposta.ok ? resposta.json() : [])
-            .then((dispositivos) => {
-                const possuiEspConfigurado = dispositivos.some((dispositivo) => Number(dispositivo.firmware_configurado) === 1);
-                if (!possuiEspConfigurado) window.location.replace("dispositivos.html?setup=1");
-            })
-            .catch(() => {});
-    }
 
     if (usuarioNormal && paginaDeSetup) {
         document.documentElement.classList.add("setup-mode");

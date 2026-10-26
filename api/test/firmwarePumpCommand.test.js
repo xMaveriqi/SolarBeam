@@ -14,9 +14,10 @@ test('o firmware nao desliga a bomba automaticamente em modo manual', () => {
   );
 });
 
-test('um comando aplicado nao e sobrescrito pela automacao no mesmo ciclo', () => {
-  assert.match(firmware, /bool comandoAplicado = verificarComandoPendente\(\);/);
-  assert.match(firmware, /if \(comandoAplicado\) return;/);
+test('um comando aplicado tem prioridade sobre a automacao no mesmo ciclo', () => {
+  assert.match(firmware, /bool comandoAplicado = false;/);
+  assert.match(firmware, /comandoAplicado = verificarComandoPendente\(\);/);
+  assert.match(firmware, /if \(!modoConfigAtivo && !comandoAplicado\) \{\s*executarIrrigacaoAutomatica\(\);/);
 });
 
 test('o desligamento manual bloqueia a automacao ate um novo comando', () => {

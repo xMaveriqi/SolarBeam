@@ -384,9 +384,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (pumpStatus) {
+            const ligada = dados.bomba === true || dados.bomba === 1 || dados.bomba === "true" || dados.bomba === "1";
+            const estadoVisual = bombaPendente ? bombaPendente.ligada : ligada;
             pumpStatus.textContent = bombaPendente
                 ? (bombaPendente.ligada ? "Ligando..." : "Desligando...")
-                : (dados.bomba ? "Ligada" : "Desligada");
+                : (ligada ? "Ligada" : "Desligada");
+            const pumpCard = pumpStatus.closest(".card");
+            if (pumpCard) pumpCard.classList.toggle("pump-on", estadoVisual);
+            pumpStatus.classList.toggle("status-on", estadoVisual);
+            pumpStatus.classList.toggle("status-off", !estadoVisual);
         }
 
         if (lastUpdate) {
@@ -471,17 +477,27 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             adicionarAlerta(
-                ligar ? "Bomba ligada" : "Bomba desligada",
+                ligar ? "Comando de ligar enviado" : "Comando de desligar enviado",
                 ligar
-                    ? "O comando para ligar a bomba foi enviado."
-                    : "O comando para desligar a bomba foi enviado.",
+                    ? "O comando foi colocado na fila e o ESP32 vai aplicá-lo na próxima consulta."
+                    : "O comando foi colocado na fila e o ESP32 vai aplicá-lo na próxima consulta.",
                 ligar ? "success" : "warning"
             );
 
             bombaPendente = { ligada: ligar, leituraBaseMs: ultimaLeituraBombaMs };
-            if (pumpStatus) pumpStatus.textContent = ligar ? "Ligando..." : "Desligando...";
+            if (pumpStatus) {
+                pumpStatus.textContent = ligar ? "Ligando..." : "Desligando...";
+                const pumpCard = pumpStatus.closest(".card");
+                if (pumpCard) pumpCard.classList.toggle("pump-on", ligar);
+                pumpStatus.classList.toggle("status-on", ligar);
+                pumpStatus.classList.toggle("status-off", !ligar);
+            }
 
+            // O backend apenas enfileira o comando. O ESP32 consulta a fila
+            // periodicamente, então uma leitura imediata ainda pode mostrar
+            // o estado anterior. Atualizamos novamente após alguns segundos.
             await carregarStatus();
+            window.setTimeout(() => carregarStatus(), 6500);
 
         } catch (err) {
             console.error("Erro ao enviar comando:", err);
