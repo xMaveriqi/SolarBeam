@@ -176,6 +176,25 @@
 
                 <section class="cards-grid" aria-label="Resumo do dispositivo">
 
+                    <div class="dashboard-summary-strip" aria-label="Resumo rápido">
+                        <div class="summary-chip status-chip" id="summarySistema">
+                            <span class="summary-label">Sistema</span>
+                            <strong>Verificando</strong>
+                        </div>
+                        <div class="summary-chip" id="summaryBomba">
+                            <span class="summary-label">Bomba</span>
+                            <strong>--</strong>
+                        </div>
+                        <div class="summary-chip" id="summaryBateria">
+                            <span class="summary-label">Bateria</span>
+                            <strong>--</strong>
+                        </div>
+                        <div class="summary-chip" id="summaryAtualizacao">
+                            <span class="summary-label">Última leitura</span>
+                            <strong>--</strong>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-icon humidity">
                             <i class="fa-solid fa-seedling"></i>
@@ -236,6 +255,10 @@
                                 <h2>Status do Sistema</h2>
                                 <p class="panel-subtitle">Estado atual da comunicação</p>
                             </div>
+                            <div class="system-status-pill" id="systemStatusPill" aria-live="polite">
+                                <span class="status-dot" aria-hidden="true"></span>
+                                <span id="systemStatusText">Sincronizando...</span>
+                            </div>
                         </div>
 
                         <div class="status-list">
@@ -258,6 +281,7 @@
                                 <span>Última Atualização</span>
                                 <b id="lastUpdate">--</b>
                             </div>
+
                             <div class="status-item">
                                 <span>Firmware</span>
                                 <b id="firmwareVersion">--</b>

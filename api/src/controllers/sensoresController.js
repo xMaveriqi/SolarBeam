@@ -1,5 +1,26 @@
 const crypto = require('crypto');
 const { db } = require('../database/database');
+const { broadcastStatusUpdate } = require('../websocket');
+
+function paraHorarioBrasilia(dataHora) {
+  const data = new Date(dataHora);
+  const dataBrasil = new Date(data.getTime() - 3 * 60 * 60 * 1000);
+  const pad = (valor) => String(valor).padStart(2, '0');
+
+  return `${dataBrasil.getUTCFullYear()}-${pad(dataBrasil.getUTCMonth() + 1)}-${pad(dataBrasil.getUTCDate())} ${pad(dataBrasil.getUTCHours())}:${pad(dataBrasil.getUTCMinutes())}:${pad(dataBrasil.getUTCSeconds())}`;
+}
+
+function normalizarEstadoBomba(valor) {
+  if (typeof valor === 'boolean') return valor;
+  if (typeof valor === 'number') return valor === 1;
+  if (typeof valor === 'string') {
+    const normalizado = valor.trim().toLowerCase();
+    if (['1', 'true', 'on', 'yes'].includes(normalizado)) return true;
+    if (['0', 'false', 'off', 'no', 'null', 'undefined', ''].includes(normalizado)) return false;
+    return false;
+  }
+  return Boolean(valor);
+}
 
 function tokenValido(esperado, recebido) {
   if (!esperado || !recebido) return false;
@@ -25,12 +46,14 @@ async function receberLeitura(req, res) {
     versaoFirmware,
   } = req.body;
 
+  const bombaNormalizado = normalizarEstadoBomba(bomba);
+
   if (
     !codigoDispositivo ||
     typeof umidade !== 'number' ||
     typeof nivelAgua !== 'number' ||
     typeof bateria !== 'number' ||
-    typeof bomba !== 'boolean' ||
+    (bomba !== undefined && bomba !== null && typeof bomba !== 'boolean' && typeof bomba !== 'number' && typeof bomba !== 'string') ||
     (temperatura !== undefined && temperatura !== null && typeof temperatura !== 'number') ||
     (umidadeAr !== undefined && umidadeAr !== null && typeof umidadeAr !== 'number')
   ) {
@@ -65,7 +88,7 @@ async function receberLeitura(req, res) {
         umidade,
         nivelAgua,
         bateria,
-        bomba ? 1 : 0,
+        bombaNormalizado ? 1 : 0,
         dispositivoId,
         versaoFirmware || null,
         temperatura ?? null,
@@ -78,6 +101,26 @@ async function receberLeitura(req, res) {
       args: [versaoFirmware || null, dispositivoId],
     });
 
+    const agora = Date.now();
+    const eventoStatus = {
+      dispositivoId,
+      umidade,
+      nivelAgua,
+      bateria,
+      bomba: bombaNormalizado,
+      temperatura: temperatura ?? null,
+      umidadeAr: umidadeAr ?? null,
+      versaoFirmware: versaoFirmware || null,
+      online: true,
+      wifi: true,
+      energiaSolar: Number(bateria) > 3.0,
+      ultimaAtualizacaoMs: agora,
+      ultimaAtualizacao: paraHorarioBrasilia(agora),
+      bateriaPercentual: Math.max(0, Math.min(100, Math.round(((Number(bateria) - 3) / 1.2) * 100))),
+    };
+
+    broadcastStatusUpdate(eventoStatus);
+
     res.status(201).json({ mensagem: 'Leitura salva com sucesso.' });
   } catch (err) {
     console.error('Erro ao salvar leitura:', err);
@@ -85,4 +128,4 @@ async function receberLeitura(req, res) {
   }
 }
 
-module.exports = { receberLeitura };
+module.exports = { receberLeitura, normalizarEstadoBomba };

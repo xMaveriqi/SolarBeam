@@ -37,6 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const notificationsPanel = document.getElementById("notificationsPanel");
     const dashboardNotifications = document.getElementById("dashboardNotifications");
     const clearNotifications = document.getElementById("clearNotifications");
+    const systemStatusPill = document.getElementById("systemStatusPill");
+    const systemStatusText = document.getElementById("systemStatusText");
+    const summarySistema = document.getElementById("summarySistema");
+    const summaryBomba = document.getElementById("summaryBomba");
+    const summaryBateria = document.getElementById("summaryBateria");
+    const summaryAtualizacao = document.getElementById("summaryAtualizacao");
 
     const semDispositivoPanel = document.getElementById("semDispositivoPanel");
     const dashboardContent = document.getElementById("dashboardContent");
@@ -47,8 +53,13 @@ document.addEventListener("DOMContentLoaded", () => {
     let dispositivoAtual = null; // { id, nome, codigo }
     let bombaPendente = null;
     let ultimaLeituraBombaMs = 0;
+    let carregandoStatus = false;
+    let timerStatus = null;
+    const INTERVALO_STATUS_MS = 15000;
 
     inicializar();
+    iniciarPollingStatus();
+    window.addEventListener("beforeunload", pararPollingStatus);
 
     const isAdmin = localStorage.getItem("solarbeam_role") === "admin";
     if (isAdmin) {
@@ -60,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnPumpOn?.addEventListener("click", () => enviarComando(true));
     btnPumpOff?.addEventListener("click", () => enviarComando(false));
-    btnRefresh?.addEventListener("click", carregarStatus);
+    btnRefresh?.addEventListener("click", () => carregarStatus());
 
     btnDevices?.addEventListener("click", () => {
         window.location.href = "dispositivos.html";
@@ -119,6 +130,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     let dispositivosCarregados = [];
+    let socketRealtime = null;
+    let socketReconnectTimer = null;
+
+    function conectarWebSocket() {
+        if (typeof WebSocket === "undefined") return;
+        if (socketRealtime && (socketRealtime.readyState === WebSocket.OPEN || socketRealtime.readyState === WebSocket.CONNECTING)) {
+            return;
+        }
+
+        const wsUrl = `${API_URL.replace(/^http/, "ws")}/ws`;
+        socketRealtime = new WebSocket(wsUrl);
+
+        socketRealtime.addEventListener("open", () => {
+            console.info("WebSocket conectado para atualizações ao vivo.");
+            if (socketReconnectTimer) {
+                window.clearTimeout(socketReconnectTimer);
+                socketReconnectTimer = null;
+            }
+        });
+
+        socketRealtime.addEventListener("message", (evento) => {
+            try {
+                const mensagem = JSON.parse(evento.data);
+                if (mensagem?.type !== "status-update" || !mensagem?.payload) return;
+
+                const payload = mensagem.payload;
+                if (!dispositivoAtual || Number(payload.dispositivoId) !== Number(dispositivoAtual.id)) {
+                    return;
+                }
+
+                atualizarInterface({
+                    ...payload,
+                    online: payload.online ?? true,
+                    wifi: payload.wifi ?? true,
+                    energiaSolar: payload.energiaSolar ?? true,
+                    ultimaAtualizacao: payload.ultimaAtualizacao || "agora",
+                });
+            } catch (erro) {
+                console.error("Erro ao processar mensagem WebSocket:", erro);
+            }
+        });
+
+        socketRealtime.addEventListener("close", () => {
+            socketRealtime = null;
+            if (!document.hidden) {
+                socketReconnectTimer = window.setTimeout(() => conectarWebSocket(), 3000);
+            }
+        });
+    }
 
     async function carregarResumoAdmin() {
         adminSystemMessage.textContent = "Carregando sistemas...";
@@ -210,6 +270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 selecionarDispositivo(dispositivosConfigurados[0]);
             }
 
+            conectarWebSocket();
             carregarStatus();
 
         } catch (err) {
@@ -280,14 +341,33 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function carregarStatus() {
-        if (!dispositivoAtual || !btnRefresh) return;
+    function iniciarPollingStatus() {
+        pararPollingStatus();
+        timerStatus = window.setInterval(() => {
+            if (!document.hidden && dispositivoAtual) {
+                carregarStatus(true);
+            }
+        }, INTERVALO_STATUS_MS);
+    }
 
-        btnRefresh.disabled = true;
-        btnRefresh.innerHTML = `
-            <i class="fa-solid fa-spinner fa-spin"></i>
-            <span>Atualizando...</span>
-        `;
+    function pararPollingStatus() {
+        if (timerStatus) {
+            window.clearInterval(timerStatus);
+            timerStatus = null;
+        }
+    }
+
+    async function carregarStatus(silencioso = false) {
+        if (!dispositivoAtual || !btnRefresh || carregandoStatus) return;
+
+        carregandoStatus = true;
+        if (!silencioso) {
+            btnRefresh.disabled = true;
+            btnRefresh.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Atualizando...</span>
+            `;
+        }
 
         try {
             const resposta = await fetch(`${API_URL}/api/status?dispositivo=${dispositivoAtual.id}`, {
@@ -303,11 +383,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (resposta.status === 404) {
                 atualizarInterfaceSemDados();
-                adicionarAlerta(
-                    "Sem leituras",
-                    "Ainda não há uma leitura registrada para este dispositivo.",
-                    "warning"
-                );
+                if (!silencioso) {
+                    adicionarAlerta(
+                        "Sem leituras",
+                        "Ainda não há uma leitura registrada para este dispositivo.",
+                        "warning"
+                    );
+                }
                 return;
             }
 
@@ -318,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const dados = await resposta.json();
 
             atualizarInterface(dados);
-            analisarAlertas(dados);
+            if (!silencioso) analisarAlertas(dados);
 
         } catch (err) {
             console.error("Erro ao buscar status:", err);
@@ -341,22 +423,66 @@ document.addEventListener("DOMContentLoaded", () => {
                 "warning"
             );
 
-            adicionarAlerta(
-                "Servidor indisponível",
-                "Não foi possível atualizar os dados do dispositivo.",
-                "error"
-            );
+            if (!silencioso) {
+                adicionarAlerta(
+                    "Servidor indisponível",
+                    "Não foi possível atualizar os dados do dispositivo.",
+                    "error"
+                );
+            }
 
         } finally {
-            btnRefresh.disabled = false;
-            btnRefresh.innerHTML = `
-                <i class="fa-solid fa-rotate"></i>
-                <span>Atualizar Sensores</span>
-            `;
+            carregandoStatus = false;
+            if (!silencioso) {
+                btnRefresh.disabled = false;
+                btnRefresh.innerHTML = `
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Atualizar Sensores</span>
+                `;
+            }
+        }
+    }
+
+    function atualizarStatusOperacional(dados) {
+        if (!systemStatusPill) return;
+
+        const status = dados?.online === false ? "Offline" : (dados?.wifi === true ? "Online" : "Verificando");
+        const classe = dados?.online === false ? "offline" : (dados?.wifi === true ? "online" : "warning");
+
+        if (systemStatusText) {
+            systemStatusText.textContent = status;
+        }
+
+        systemStatusPill.classList.remove("online", "offline", "warning");
+        systemStatusPill.classList.add(classe);
+
+        if (summarySistema) {
+            summarySistema.classList.remove("online", "offline", "warning");
+            summarySistema.classList.add(classe);
+            summarySistema.querySelector("strong").textContent = status;
+        }
+    }
+
+    function atualizarResumoRapido(dados) {
+        if (summaryBomba) {
+            const ligada = dados?.bomba === true || dados?.bomba === 1 || dados?.bomba === "true" || dados?.bomba === "1";
+            summaryBomba.querySelector("strong").textContent = ligada ? "Ligada" : "Desligada";
+            summaryBomba.classList.toggle("on", ligada);
+        }
+
+        if (summaryBateria) {
+            summaryBateria.querySelector("strong").textContent = dados?.bateria != null ? `${dados.bateria}V` : "--";
+        }
+
+        if (summaryAtualizacao) {
+            summaryAtualizacao.querySelector("strong").textContent = dados?.ultimaAtualizacao || "--";
         }
     }
 
     function atualizarInterface(dados) {
+        atualizarStatusOperacional(dados);
+        atualizarResumoRapido(dados);
+
         if (soilHumidity) {
             soilHumidity.textContent =
                 dados.umidade != null ? `${dados.umidade}%` : "--";
@@ -426,12 +552,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function atualizarInterfaceSemDados() {
+        if (systemStatusPill) {
+            if (systemStatusText) {
+                systemStatusText.textContent = "Sem dados";
+            }
+            systemStatusPill.classList.remove("online", "offline", "warning");
+            systemStatusPill.classList.add("warning");
+        }
+
         if (soilHumidity) soilHumidity.textContent = "--";
         if (temperature) temperature.textContent = "--";
         if (battery) battery.textContent = "--";
         if (waterLevel) waterLevel.textContent = "--";
         if (batteryAutonomy) batteryAutonomy.textContent = "--";
-        if (pumpStatus) pumpStatus.textContent = "--";
+        if (pumpStatus) {
+            pumpStatus.textContent = "--";
+            pumpStatus.classList.remove("status-on", "status-off");
+            pumpStatus.closest(".card")?.classList.remove("pump-on");
+        }
+        bombaPendente = null;
         if (lastUpdate) lastUpdate.textContent = "--";
 
         atualizarStatusSistema(espStatus, "Sem dados", "warning");
@@ -493,11 +632,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 pumpStatus.classList.toggle("status-off", !ligar);
             }
 
-            // O backend apenas enfileira o comando. O ESP32 consulta a fila
-            // periodicamente, então uma leitura imediata ainda pode mostrar
-            // o estado anterior. Atualizamos novamente após alguns segundos.
+            // O backend enfileira o comando; o polling atualiza o estado quando
+            // o ESP32 enviar uma nova leitura.
             await carregarStatus();
-            window.setTimeout(() => carregarStatus(), 6500);
 
         } catch (err) {
             console.error("Erro ao enviar comando:", err);
@@ -546,6 +683,12 @@ document.addEventListener("DOMContentLoaded", () => {
     function adicionarAlerta(titulo, mensagem, tipo = "warning") {
         if (!dashboardNotifications) return;
 
+        const chaveAlerta = `${tipo}:${titulo}:${mensagem}`;
+        const jaExiste = [...dashboardNotifications.querySelectorAll(".dashboard-notification")]
+            .some((item) => item.dataset.alertaChave === chaveAlerta);
+
+        if (jaExiste) return;
+
         const vazio = dashboardNotifications.querySelector(".empty-notification");
 
         if (vazio) {
@@ -554,6 +697,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const item = document.createElement("div");
         item.className = `dashboard-notification ${tipo}`;
+        item.dataset.alertaChave = chaveAlerta;
 
         const icon =
             tipo === "error"

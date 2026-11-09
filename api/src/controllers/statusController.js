@@ -2,18 +2,38 @@ const { db } = require('../database/database');
 const { usuarioPodeAcessarDispositivo } = require('../middleware/deviceAccess');
 
 function paraHorarioBrasilia(dataHoraUTC) {
-  const dataUTC = new Date(dataHoraUTC + 'Z');
+  if (!dataHoraUTC) return '--';
+
+  const dataNormalizada = String(dataHoraUTC).replace(' ', 'T');
+  const dataUTC = new Date(`${dataNormalizada}Z`);
+
+  if (Number.isNaN(dataUTC.getTime())) {
+    return '--';
+  }
+
   const dataBrasil = new Date(dataUTC.getTime() - 3 * 60 * 60 * 1000);
 
   const pad = (n) => String(n).padStart(2, '0');
-  const y = dataBrasil.getFullYear();
-  const m = pad(dataBrasil.getMonth() + 1);
-  const d = pad(dataBrasil.getDate());
-  const h = pad(dataBrasil.getHours());
-  const min = pad(dataBrasil.getMinutes());
-  const s = pad(dataBrasil.getSeconds());
+  const y = dataBrasil.getUTCFullYear();
+  const m = pad(dataBrasil.getUTCMonth() + 1);
+  const d = pad(dataBrasil.getUTCDate());
+  const h = pad(dataBrasil.getUTCHours());
+  const min = pad(dataBrasil.getUTCMinutes());
+  const s = pad(dataBrasil.getUTCSeconds());
 
   return `${y}-${m}-${d} ${h}:${min}:${s}`;
+}
+
+function normalizarEstadoBomba(valor) {
+  if (typeof valor === 'boolean') return valor;
+  if (typeof valor === 'number') return valor === 1;
+  if (typeof valor === 'string') {
+    const normalizado = valor.trim().toLowerCase();
+    if (['1', 'true', 'on', 'yes'].includes(normalizado)) return true;
+    if (['0', 'false', 'off', 'no', 'null', 'undefined', ''].includes(normalizado)) return false;
+    return false;
+  }
+  return Boolean(valor);
 }
 
 // GET /api/status?dispositivo=ID - se omitido, pega a ultima leitura de qualquer dispositivo
@@ -51,7 +71,9 @@ async function obterStatus(req, res) {
 
     const leitura = resultado.rows[0];
 
-    const dataLeituraMs = new Date(`${leitura.data_hora}Z`).getTime();
+    const dataLeituraMs = Number.isFinite(Date.parse(String(leitura.data_hora).replace(' ', 'T'))) ?
+      new Date(`${String(leitura.data_hora).replace(' ', 'T')}Z`).getTime() :
+      NaN;
     const online = Number.isFinite(dataLeituraMs) && (Date.now() - dataLeituraMs <= 120000);
 
     const bateriaPercentual = Math.max(
@@ -71,7 +93,7 @@ async function obterStatus(req, res) {
       bateria: leitura.bateria,
       bateriaPercentual,
       autonomiaEstimada: bateriaPercentual > 0 ? `${Math.max(1, Math.round(bateriaPercentual / 8))}h` : '--',
-      bomba: Boolean(leitura.bomba),
+      bomba: normalizarEstadoBomba(leitura.bomba),
       temperatura: leitura.temperatura,
       umidadeAr: leitura.umidade_ar,
       versaoFirmware: leitura.versao_firmware,
@@ -87,4 +109,4 @@ async function obterStatus(req, res) {
   }
 }
 
-module.exports = { obterStatus };
+module.exports = { obterStatus, normalizarEstadoBomba, paraHorarioBrasilia };
