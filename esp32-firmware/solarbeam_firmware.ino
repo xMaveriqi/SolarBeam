@@ -148,6 +148,7 @@ int versaoConfiguracao = -1;
 // ============================================================
 void escreverRele(bool ligado);
 void definirBomba(bool ligada);
+void notificarMudancaEstadoBomba(bool ligada);
 bool bombaLigada();
 void iniciarPortalConfig();
 void encerrarPortalConfig();
@@ -270,11 +271,30 @@ void escreverRele(bool ligado) {
   }
 }
 
+void notificarMudancaEstadoBomba(bool ligada) {
+  Serial.println("SINAL_BOMBA: " + String(ligada ? "LIGADA" : "DESLIGADA"));
+
+  if (codigoDispositivo == "" || WiFi.status() != WL_CONNECTED) {
+    return;
+  }
+
+  if (apiLiberada()) {
+    enviarLeitura();
+  }
+}
+
 void definirBomba(bool ligada) {
+  bool mudou = ligada != estadoBomba;
+
   if (ligada && !estadoBomba) inicioBombaMs = millis();
   if (!ligada && estadoBomba) ultimoFimIrrigacao = millis();
-  escreverRele(ligada);
+
+  escreverRele(ligado);
   estadoBomba = ligada;
+
+  if (mudou) {
+    notificarMudancaEstadoBomba(ligada);
+  }
 }
 
 bool bombaLigada() {

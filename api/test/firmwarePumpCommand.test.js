@@ -30,3 +30,9 @@ test('salvar novamente o modo automatico libera o bloqueio manual', () => {
   assert.match(firmware, /int novaVersao = doc\["versao"\] \| -1;/);
   assert.match(firmware, /if \(novoModo == "automatico" && novaVersao != versaoConfiguracao\) bloqueioAutomaticoAte = 0;/);
 });
+
+test('o firmware emite sinal imediato ao ligar e desligar a bomba', () => {
+  assert.match(firmware, /void notificarMudancaEstadoBomba\(bool ligada\)/);
+  assert.match(firmware, /SINAL_BOMBA:/);
+  assert.match(firmware, /if \(mudou\)\s*\{\s*notificarMudancaEstadoBomba\(ligada\);/s);
+});
