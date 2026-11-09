@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const battery = document.getElementById("battery");
     const waterLevel = document.getElementById("waterLevel");
     const batteryAutonomy = document.getElementById("batteryAutonomy");
-    const pumpStatus = document.getElementById("pumpStatus");
     const lastUpdate = document.getElementById("lastUpdate");
 
     const espStatus = document.getElementById("espStatus");
@@ -509,18 +508,6 @@ document.addEventListener("DOMContentLoaded", () => {
             ultimaLeituraBombaMs = Math.max(ultimaLeituraBombaMs, leituraBombaMs);
         }
 
-        if (pumpStatus) {
-            const ligada = dados.bomba === true || dados.bomba === 1 || dados.bomba === "true" || dados.bomba === "1";
-            const estadoVisual = bombaPendente ? bombaPendente.ligada : ligada;
-            pumpStatus.textContent = bombaPendente
-                ? (bombaPendente.ligada ? "Ligando..." : "Desligando...")
-                : (ligada ? "Ligada" : "Desligada");
-            const pumpCard = pumpStatus.closest(".card");
-            if (pumpCard) pumpCard.classList.toggle("pump-on", estadoVisual);
-            pumpStatus.classList.toggle("status-on", estadoVisual);
-            pumpStatus.classList.toggle("status-off", !estadoVisual);
-        }
-
         if (lastUpdate) {
             lastUpdate.textContent =
                 dados.ultimaAtualizacao || "--";
@@ -565,11 +552,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (battery) battery.textContent = "--";
         if (waterLevel) waterLevel.textContent = "--";
         if (batteryAutonomy) batteryAutonomy.textContent = "--";
-        if (pumpStatus) {
-            pumpStatus.textContent = "--";
-            pumpStatus.classList.remove("status-on", "status-off");
-            pumpStatus.closest(".card")?.classList.remove("pump-on");
-        }
         bombaPendente = null;
         if (lastUpdate) lastUpdate.textContent = "--";
 
@@ -624,13 +606,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             bombaPendente = { ligada: ligar, leituraBaseMs: ultimaLeituraBombaMs };
-            if (pumpStatus) {
-                pumpStatus.textContent = ligar ? "Ligando..." : "Desligando...";
-                const pumpCard = pumpStatus.closest(".card");
-                if (pumpCard) pumpCard.classList.toggle("pump-on", ligar);
-                pumpStatus.classList.toggle("status-on", ligar);
-                pumpStatus.classList.toggle("status-off", !ligar);
-            }
 
             // O backend enfileira o comando; o polling atualiza o estado quando
             // o ESP32 enviar uma nova leitura.
