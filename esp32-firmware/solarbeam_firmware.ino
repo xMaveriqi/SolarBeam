@@ -292,7 +292,7 @@ void definirBomba(bool ligada) {
   if (ligada && !estadoBomba) inicioBombaMs = millis();
   if (!ligada && estadoBomba) ultimoFimIrrigacao = millis();
 
-  escreverRele(ligado);
+  escreverRele(ligada);
   estadoBomba = ligada;
 
   if (mudou) {
