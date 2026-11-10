@@ -47,19 +47,22 @@ async function receberLeitura(req, res) {
   } = req.body;
 
   const bombaNormalizado = normalizarEstadoBomba(bomba);
+  const umidadeValida = umidade == null || (typeof umidade === 'number' && Number.isFinite(umidade));
+  const nivelAguaValido = nivelAgua == null || (typeof nivelAgua === 'number' && Number.isFinite(nivelAgua));
+  const bateriaValida = bateria == null || (typeof bateria === 'number' && Number.isFinite(bateria));
 
   if (
     !codigoDispositivo ||
-    typeof umidade !== 'number' ||
-    typeof nivelAgua !== 'number' ||
-    typeof bateria !== 'number' ||
+    !umidadeValida ||
+    !nivelAguaValido ||
+    !bateriaValida ||
     (bomba !== undefined && bomba !== null && typeof bomba !== 'boolean' && typeof bomba !== 'number' && typeof bomba !== 'string') ||
     (temperatura !== undefined && temperatura !== null && typeof temperatura !== 'number') ||
     (umidadeAr !== undefined && umidadeAr !== null && typeof umidadeAr !== 'number')
   ) {
     return res.status(400).json({
       erro:
-        'Dados invalidos. Esperado: umidade (number), nivelAgua (number), bateria (number), bomba (boolean), ' +
+        'Dados invalidos. Esperado: umidade, nivelAgua e bateria (number ou null), bomba (boolean), ' +
         'temperatura (number, opcional), umidadeAr (number, opcional).',
     });
   }
@@ -85,9 +88,9 @@ async function receberLeitura(req, res) {
     await db.execute({
       sql: `INSERT INTO leituras (umidade, nivel_agua, bateria, bomba, dispositivo_id, versao_firmware, temperatura, umidade_ar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
-        umidade,
-        nivelAgua,
-        bateria,
+        umidade ?? -1,
+        nivelAgua ?? -1,
+        bateria ?? -1,
         bombaNormalizado ? 1 : 0,
         dispositivoId,
         versaoFirmware || null,
@@ -104,19 +107,19 @@ async function receberLeitura(req, res) {
     const agora = Date.now();
     const eventoStatus = {
       dispositivoId,
-      umidade,
-      nivelAgua,
-      bateria,
+      umidade: umidade ?? null,
+      nivelAgua: nivelAgua ?? null,
+      bateria: bateria ?? null,
       bomba: bombaNormalizado,
       temperatura: temperatura ?? null,
       umidadeAr: umidadeAr ?? null,
       versaoFirmware: versaoFirmware || null,
       online: true,
       wifi: true,
-      energiaSolar: Number(bateria) > 3.0,
+      energiaSolar: bateria != null && Number(bateria) > 3.0,
       ultimaAtualizacaoMs: agora,
       ultimaAtualizacao: paraHorarioBrasilia(agora),
-      bateriaPercentual: Math.max(0, Math.min(100, Math.round(((Number(bateria) - 3) / 1.2) * 100))),
+      bateriaPercentual: bateria == null ? null : Math.max(0, Math.min(100, Math.round(((Number(bateria) - 3) / 1.2) * 100))),
     };
 
     broadcastStatusUpdate(eventoStatus);

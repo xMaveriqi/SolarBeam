@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const {
   normalizarEstadoBomba,
   paraHorarioBrasilia,
+  sensorDisponivel,
 } = require('../src/controllers/statusController');
 const { normalizarEstadoBomba: normalizarEstadoBombaSensor } = require('../src/controllers/sensoresController');
 
@@ -28,4 +29,10 @@ test('normalizarEstadoBomba do sensor aceita booleanos numericos e string em JSO
 
 test('paraHorarioBrasilia converte UTC para UTC-3 sem depender do fuso do servidor', () => {
   assert.equal(paraHorarioBrasilia('2025-01-15 12:34:56'), '2025-01-15 09:34:56');
+});
+
+test('sensorDisponivel oculta valores ausentes e preserva leituras validas', () => {
+  assert.equal(sensorDisponivel(null), null);
+  assert.equal(sensorDisponivel(-1), null);
+  assert.equal(sensorDisponivel(12.5), 12.5);
 });

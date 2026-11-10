@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const systemStatusPill = document.getElementById("systemStatusPill");
     const systemStatusText = document.getElementById("systemStatusText");
     const summarySistema = document.getElementById("summarySistema");
-    const summaryBomba = document.getElementById("summaryBomba");
     const summaryBateria = document.getElementById("summaryBateria");
     const summaryAtualizacao = document.getElementById("summaryAtualizacao");
 
@@ -463,14 +462,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function atualizarResumoRapido(dados) {
-        if (summaryBomba) {
-            const ligada = dados?.bomba === true || dados?.bomba === 1 || dados?.bomba === "true" || dados?.bomba === "1";
-            summaryBomba.querySelector("strong").textContent = ligada ? "Ligada" : "Desligada";
-            summaryBomba.classList.toggle("on", ligada);
-        }
-
         if (summaryBateria) {
-            summaryBateria.querySelector("strong").textContent = dados?.bateria != null ? `${dados.bateria}V` : "--";
+            summaryBateria.querySelector("strong").textContent = window.solarbeamFormatSensor(dados?.bateria, 2, " V");
         }
 
         if (summaryAtualizacao) {
@@ -483,21 +476,18 @@ document.addEventListener("DOMContentLoaded", () => {
         atualizarResumoRapido(dados);
 
         if (soilHumidity) {
-            soilHumidity.textContent =
-                dados.umidade != null ? `${dados.umidade}%` : "--";
+            soilHumidity.textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
         }
 
         if (temperature) {
-            temperature.textContent =
-                dados.temperatura != null ? `${dados.temperatura}°C` : "--";
+            temperature.textContent = window.solarbeamFormatSensor(dados.temperatura, 1, "°C");
         }
 
         if (battery) {
-            battery.textContent =
-                dados.bateria != null ? `${dados.bateria}V` : "--";
+            battery.textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
         }
 
-        if (waterLevel) waterLevel.textContent = dados.nivelAgua != null ? `${dados.nivelAgua}%` : "--";
+        if (waterLevel) waterLevel.textContent = window.solarbeamFormatSensor(dados.nivelAgua, 1, "%");
         if (batteryAutonomy) batteryAutonomy.textContent = dados.autonomiaEstimada || "--";
 
         const leituraBombaMs = Number(dados.ultimaAtualizacaoMs);
@@ -641,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dados.bateria != null && Number(dados.bateria) < 3.6) {
             adicionarAlerta(
                 "Bateria baixa",
-                `A bateria está em ${dados.bateria}V.`,
+            `A bateria está em ${window.solarbeamFormatSensor(dados.bateria, 2, " V")}.`,
                 "warning"
             );
         }

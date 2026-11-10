@@ -40,9 +40,9 @@ async function obterHistorico(req, res) {
 
     const historico = resultado.rows.map((l) => ({
       id: l.id,
-      umidade: l.umidade,
-      nivelAgua: l.nivel_agua,
-      bateria: l.bateria,
+      umidade: l.umidade == null || l.umidade < 0 ? null : l.umidade,
+      nivelAgua: l.nivel_agua == null || l.nivel_agua < 0 ? null : l.nivel_agua,
+      bateria: l.bateria == null || l.bateria < 0 ? null : l.bateria,
       bomba: Boolean(l.bomba),
       dataHora: paraHorarioBrasilia(l.data_hora),
     }));

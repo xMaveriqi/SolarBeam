@@ -15,10 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (resposta.status === 401) return solarbeamLogout();
 			const dados = await resposta.json();
 			if (!resposta.ok) throw Error(dados.erro || "Não foi possível carregar as leituras.");
-			$("humidity").textContent = dados.umidade != null ? `${dados.umidade}%` : "--";
-			$("temperature").textContent = dados.temperatura != null ? `${dados.temperatura}°C` : "--";
-			$("water").textContent = dados.nivelAgua != null ? dados.nivelAgua : "--";
-			$("voltage").textContent = dados.bateria != null ? `${dados.bateria}V` : "--";
+			$("humidity").textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
+			$("temperature").textContent = window.solarbeamFormatSensor(dados.temperatura, 1, "°C");
+			$("water").textContent = window.solarbeamFormatSensor(dados.nivelAgua, 1, "%");
+			$("voltage").textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
 			$("autonomy").textContent = dados.autonomiaEstimada || "--";
 			$("updated").textContent = dados.ultimaAtualizacao || "--";
 			$("message").textContent = "Leitura atualizada.";

@@ -36,6 +36,12 @@ function normalizarEstadoBomba(valor) {
   return Boolean(valor);
 }
 
+function sensorDisponivel(valor) {
+  if (valor == null) return null;
+  const numero = Number(valor);
+  return Number.isFinite(numero) && numero >= 0 ? numero : null;
+}
+
 // GET /api/status?dispositivo=ID - se omitido, pega a ultima leitura de qualquer dispositivo
 async function obterStatus(req, res) {
   try {
@@ -76,25 +82,27 @@ async function obterStatus(req, res) {
       NaN;
     const online = Number.isFinite(dataLeituraMs) && (Date.now() - dataLeituraMs <= 120000);
 
-    const bateriaPercentual = Math.max(
+    const bateria = sensorDisponivel(leitura.bateria);
+    const nivelAgua = sensorDisponivel(leitura.nivel_agua);
+    const bateriaPercentual = bateria === null ? null : Math.max(
       0,
-      Math.min(100, Math.round(((leitura.bateria - 3) / 1.2) * 100))
+      Math.min(100, Math.round(((bateria - 3) / 1.2) * 100))
     );
 
     // O ESP só pode ser considerado conectado aos serviços enquanto existe
     // uma leitura recente. Assim, um ESP offline nunca aparece como Wi-Fi
     // conectado ou energia solar ativa na dashboard.
     const wifi = online;
-    const energiaSolar = online && Number(leitura.bateria) > 3.0;
+    const energiaSolar = online && bateria !== null && bateria > 3.0;
 
     res.json({
-      umidade: leitura.umidade,
-      nivelAgua: leitura.nivel_agua,
-      bateria: leitura.bateria,
+      umidade: sensorDisponivel(leitura.umidade),
+      nivelAgua,
+      bateria,
       bateriaPercentual,
       autonomiaEstimada: bateriaPercentual > 0 ? `${Math.max(1, Math.round(bateriaPercentual / 8))}h` : '--',
       bomba: normalizarEstadoBomba(leitura.bomba),
-      temperatura: leitura.temperatura,
+      temperatura: leitura.temperatura == null || !Number.isFinite(Number(leitura.temperatura)) ? null : Number(leitura.temperatura),
       umidadeAr: leitura.umidade_ar,
       versaoFirmware: leitura.versao_firmware,
       online,
@@ -109,4 +117,4 @@ async function obterStatus(req, res) {
   }
 }
 
-module.exports = { obterStatus, normalizarEstadoBomba, paraHorarioBrasilia };
+module.exports = { obterStatus, normalizarEstadoBomba, paraHorarioBrasilia, sensorDisponivel };

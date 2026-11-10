@@ -8,3 +8,13 @@ const API_URL = (() => {
     }
     return "https://api-solarbeam.onrender.com";
 })();
+
+window.solarbeamFormatSensor = (valor, casasDecimais = 1, unidade = "") => {
+    if (valor == null || valor === "" || !Number.isFinite(Number(valor))) return "--";
+
+    const formatado = new Intl.NumberFormat("pt-BR", {
+        maximumFractionDigits: casasDecimais,
+    }).format(Number(valor));
+
+    return `${formatado}${unidade}`;
+};

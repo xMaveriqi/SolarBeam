@@ -58,9 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
             corpo.innerHTML = dados.map((l) => `
                 <tr>
                     <td>${l.dataHora}</td>
-                    <td>${l.umidade}%</td>
-                    <td>${l.nivelAgua}%</td>
-                    <td>${l.bateria}V</td>
+                    <td>${window.solarbeamFormatSensor(l.umidade, 1, "%")}</td>
+                    <td>${window.solarbeamFormatSensor(l.nivelAgua, 1, "%")}</td>
+                    <td>${window.solarbeamFormatSensor(l.bateria, 2, " V")}</td>
                     <td><span class="status-pill ${l.bomba ? 'ok' : 'offline'}">${l.bomba ? 'Ligada' : 'Desligada'}</span></td>
                 </tr>
             `).join("");

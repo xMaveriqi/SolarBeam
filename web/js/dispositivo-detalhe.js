@@ -51,11 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dados = await resposta.json();
 
-            soilHumidity.textContent = `${dados.umidade}%`;
-            nivelAgua.textContent = `${dados.nivelAgua}%`;
-            if (temperaturaAr) temperaturaAr.textContent = dados.temperatura != null ? `${dados.temperatura}°C` : "--°C";
-            if (umidadeAr) umidadeAr.textContent = dados.umidadeAr != null ? `${dados.umidadeAr}%` : "--%";
-            battery.textContent = `${dados.bateria}V`;
+            soilHumidity.textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
+            nivelAgua.textContent = window.solarbeamFormatSensor(dados.nivelAgua, 1, "%");
+            if (temperaturaAr) temperaturaAr.textContent = window.solarbeamFormatSensor(dados.temperatura, 1, "°C");
+            if (umidadeAr) umidadeAr.textContent = window.solarbeamFormatSensor(dados.umidadeAr, 1, "%");
+            battery.textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
             if (batteryAutonomy) batteryAutonomy.textContent = dados.autonomiaEstimada || "--";
             pumpStatus.textContent = dados.bomba ? "Ligada" : "Desligada";
             lastUpdate.textContent = dados.ultimaAtualizacao;

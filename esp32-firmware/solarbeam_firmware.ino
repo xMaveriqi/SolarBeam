@@ -73,6 +73,9 @@ const bool RELE_MODO_DRENO_ABERTO = false;
 const int UMIDADE_ADC_SECO = 4095;     // leitura bruta com o sensor no ar/solo seco
 const int UMIDADE_ADC_MOLHADO = 1200;  // leitura bruta com o sensor na agua/solo encharcado
 const float DIVISOR_BATERIA = 2.0;     // divisor resistivo 1:1 => tensao real = leitura x 2
+const bool SENSOR_UMIDADE_INSTALADO = true;
+const bool SENSOR_NIVEL_AGUA_INSTALADO = false;
+const bool SENSOR_BATERIA_INSTALADO = false;
 const float NIVEL_AGUA_MINIMO = 5.0;   // % abaixo do qual a bomba nao pode ligar (modo automatico)
 
 // --- Tempos -------------------------------------------------
@@ -368,18 +371,21 @@ float mapearFloat(float x, float inMin, float inMax, float outMin, float outMax)
 }
 
 float lerUmidade() {
+  if (!SENSOR_UMIDADE_INSTALADO) return NAN;
   int bruto = lerAnalogicoMedio(PINO_UMIDADE);
   float percentual = mapearFloat(bruto, UMIDADE_ADC_SECO, UMIDADE_ADC_MOLHADO, 0.0, 100.0);
   return constrain(percentual, 0.0f, 100.0f);
 }
 
 float lerNivelAgua() {
+  if (!SENSOR_NIVEL_AGUA_INSTALADO) return NAN;
   int bruto = lerAnalogicoMedio(PINO_NIVEL_AGUA);
   float percentual = mapearFloat(bruto, 0, 4095, 0.0, 100.0);
   return constrain(percentual, 0.0f, 100.0f);
 }
 
 float lerBateria() {
+  if (!SENSOR_BATERIA_INSTALADO) return NAN;
   uint32_t soma = 0;
   for (int i = 0; i < 16; i++) {
     soma += analogReadMilliVolts(PINO_BATERIA);

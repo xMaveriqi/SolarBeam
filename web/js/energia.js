@@ -32,9 +32,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const dados = await resposta.json();
 
-            battery.textContent = `${dados.bateria}V`;
+            battery.textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
             updated.textContent = dados.ultimaAtualizacao;
             solar.textContent = "Não disponível"; // painel solar ainda nao tem sensor proprio
+
+            if (dados.bateria == null) {
+                batteryBar.style.width = "0%";
+                batteryMessage.textContent = "Sensor de bateria indisponível.";
+                batteryMessage.className = "message";
+                return;
+            }
 
             const percentual = Math.max(0, Math.min(100,
                 ((dados.bateria - TENSAO_MINIMA) / (TENSAO_MAXIMA - TENSAO_MINIMA)) * 100
