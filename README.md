@@ -106,6 +106,8 @@ tabela de partições e aplicação. Veja mais detalhes em
 
 A dashboard apresenta o estado do ESP selecionado:
 
+- As leituras dos sensores são consultadas na dashboard; não há uma aba
+  separada de Sensores.
 - Umidade do solo.
 - Temperatura, quando disponível.
 - Bateria.
