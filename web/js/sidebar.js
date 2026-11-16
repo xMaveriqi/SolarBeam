@@ -63,8 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
         item.style.display = role === "admin" ? "" : "none";
     });
 
-    // Sensores, Irrigação e Energia só aparecem após configuração do firmware.
-    const linksDeDispositivo = new Set(["sensores.html", "irrigacao.html", "energia.html"]);
+    // Irrigação e Energia só aparecem após configuração do firmware.
+    const linksDeDispositivo = new Set(["irrigacao.html", "energia.html"]);
     const roleAtual = (localStorage.getItem("solarbeam_role") || "").toLowerCase();
     if (roleAtual !== "admin" && typeof API_URL !== "undefined" && typeof solarbeamAuthHeaders === "function") {
         fetch(`${API_URL}/api/dispositivos`, { headers: solarbeamAuthHeaders() })
