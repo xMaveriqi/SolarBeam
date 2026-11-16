@@ -16,11 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("codigoTopbar").textContent = dispositivoCodigo || "--";
 
     const soilHumidity = document.getElementById("soilHumidity");
-    const nivelAgua = document.getElementById("nivelAgua");
-    const temperaturaAr = document.getElementById("temperaturaAr");
     const umidadeAr = document.getElementById("umidadeAr");
-    const battery = document.getElementById("battery");
-    const batteryAutonomy = document.getElementById("batteryAutonomy");
     const pumpStatus = document.getElementById("pumpStatus");
     const lastUpdate = document.getElementById("lastUpdate");
     const btnRefresh = document.getElementById("btnRefresh");
@@ -52,11 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const dados = await resposta.json();
 
             soilHumidity.textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
-            nivelAgua.textContent = window.solarbeamFormatSensor(dados.nivelAgua, 1, "%");
-            if (temperaturaAr) temperaturaAr.textContent = window.solarbeamFormatSensor(dados.temperatura, 1, "°C");
             if (umidadeAr) umidadeAr.textContent = window.solarbeamFormatSensor(dados.umidadeAr, 1, "%");
-            battery.textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
-            if (batteryAutonomy) batteryAutonomy.textContent = dados.autonomiaEstimada || "--";
             pumpStatus.textContent = dados.bomba ? "Ligada" : "Desligada";
             lastUpdate.textContent = dados.ultimaAtualizacao;
 

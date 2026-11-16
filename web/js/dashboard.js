@@ -14,10 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnSettings = document.getElementById("btnSettings");
 
     const soilHumidity = document.getElementById("soilHumidity");
-    const temperature = document.getElementById("temperature");
-    const battery = document.getElementById("battery");
-    const waterLevel = document.getElementById("waterLevel");
-    const batteryAutonomy = document.getElementById("batteryAutonomy");
     const lastUpdate = document.getElementById("lastUpdate");
 
     const espStatus = document.getElementById("espStatus");
@@ -39,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const systemStatusPill = document.getElementById("systemStatusPill");
     const systemStatusText = document.getElementById("systemStatusText");
     const summarySistema = document.getElementById("summarySistema");
-    const summaryBateria = document.getElementById("summaryBateria");
     const summaryAtualizacao = document.getElementById("summaryAtualizacao");
 
     const semDispositivoPanel = document.getElementById("semDispositivoPanel");
@@ -462,10 +457,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function atualizarResumoRapido(dados) {
-        if (summaryBateria) {
-            summaryBateria.querySelector("strong").textContent = window.solarbeamFormatSensor(dados?.bateria, 2, " V");
-        }
-
         if (summaryAtualizacao) {
             summaryAtualizacao.querySelector("strong").textContent = dados?.ultimaAtualizacao || "--";
         }
@@ -478,17 +469,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (soilHumidity) {
             soilHumidity.textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
         }
-
-        if (temperature) {
-            temperature.textContent = window.solarbeamFormatSensor(dados.temperatura, 1, "°C");
-        }
-
-        if (battery) {
-            battery.textContent = window.solarbeamFormatSensor(dados.bateria, 2, " V");
-        }
-
-        if (waterLevel) waterLevel.textContent = window.solarbeamFormatSensor(dados.nivelAgua, 1, "%");
-        if (batteryAutonomy) batteryAutonomy.textContent = dados.autonomiaEstimada || "--";
 
         const leituraBombaMs = Number(dados.ultimaAtualizacaoMs);
         if (Number.isFinite(leituraBombaMs) && leituraBombaMs > 0) {
@@ -538,10 +518,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (soilHumidity) soilHumidity.textContent = "--";
-        if (temperature) temperature.textContent = "--";
-        if (battery) battery.textContent = "--";
-        if (waterLevel) waterLevel.textContent = "--";
-        if (batteryAutonomy) batteryAutonomy.textContent = "--";
         bombaPendente = null;
         if (lastUpdate) lastUpdate.textContent = "--";
 
