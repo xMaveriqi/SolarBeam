@@ -49,25 +49,25 @@ button:disabled {
 
 :root {
     /* Cores principais */
-    --solar-yellow: #FBBF24;
-    --solar-yellow-dark: #F59E0B;
+    --solar-yellow: #D8EF8A;
+    --solar-yellow-dark: #B5D95C;
 
-    --solar-green: #22C55E;
-    --solar-blue: #3B82F6;
-    --solar-red: #EF4444;
+    --solar-green: #65D6A4;
+    --solar-blue: #82B8F4;
+    --solar-red: #F17878;
 
     /* Fundos */
-    --background: #0F172A;
-    --background-dark: #020617;
-    --card: #1E293B;
+    --background: #0C1511;
+    --background-dark: #080E0B;
+    --card: #15221B;
 
     /* Textos */
-    --text-primary: #F8FAFC;
-    --text-secondary: #CBD5E1;
-    --text-muted: #94A3B8;
+    --text-primary: #F3F7F1;
+    --text-secondary: #B5C2B9;
+    --text-muted: #899B90;
 
     /* Bordas */
-    --border: rgba(255, 255, 255, 0.08);
+    --border: rgba(222, 239, 222, 0.10);
 
     /* Compatibilidade com outros CSS */
     --primary: var(--solar-yellow);
@@ -99,19 +99,14 @@ body {
 
     overflow-x: hidden;
 
-    font-family:
-        "Poppins",
-        sans-serif;
+    font-family: "Poppins", sans-serif;
 
     color: var(--text-primary);
 
     background:
-        linear-gradient(
-            135deg,
-            var(--background-dark),
-            var(--background),
-            #111827
-        );
+        radial-gradient(ellipse at 12% 0%, rgba(86, 145, 94, 0.12), transparent 34rem),
+        radial-gradient(ellipse at 92% 100%, rgba(183, 217, 92, 0.07), transparent 32rem),
+        var(--background);
 }
 
 
@@ -130,9 +125,9 @@ body::after {
 
     border-radius: 50%;
 
-    filter: blur(120px);
+    filter: blur(150px);
 
-    opacity: 0.35;
+    opacity: 0.12;
 
     z-index: -1;
 
@@ -149,9 +144,6 @@ body::before {
     left: -150px;
 
     background: var(--solar-yellow);
-
-    animation:
-        lightMoveOne 10s infinite alternate;
 }
 
 
@@ -163,10 +155,7 @@ body::after {
     right: -150px;
     bottom: -150px;
 
-    background: var(--solar-blue);
-
-    animation:
-        lightMoveTwo 12s infinite alternate;
+    background: var(--solar-green);
 }
 
 
