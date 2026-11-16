@@ -2925,7 +2925,7 @@ button, .primary-button, .danger-button, input, select, textarea {
 }
 button:not(:disabled):active, .primary-button:active, .danger-button:active { transform: translateY(1px); }
 input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
-    outline: 2px solid rgba(34, 197, 94, .75);
+    outline: 2px solid rgba(251, 191, 36, .75);
     outline-offset: 2px;
 }
 
@@ -2934,27 +2934,27 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     --sidebar-open: 260px;
     --sidebar-closed: 78px;
     --content-gap: 30px;
-    --primary: #D8EF8A;
-    --primary-dark: #B5D95C;
-    --blue: #82B8F4;
-    --green: #65D6A4;
-    --red: #F17878;
-    --background: #0C1511;
-    --surface: #15221B;
-    --text: #F3F7F1;
-    --text-secondary: #B5C2B9;
-    --border: rgba(222, 239, 222, 0.10);
-    --input-bg: #101A14;
-    --glass: rgba(19, 32, 25, 0.88);
-    --glass-light: rgba(235, 248, 231, 0.045);
+    --primary: #FBBF24;
+    --primary-dark: #F59E0B;
+    --blue: #3B82F6;
+    --green: #22C55E;
+    --red: #EF4444;
+    --background: #0F172A;
+    --surface: #1E293B;
+    --text: #F8FAFC;
+    --text-secondary: #CBD5E1;
+    --border: rgba(255, 255, 255, 0.08);
+    --input-bg: #111B2E;
+    --glass: rgba(30, 41, 59, 0.88);
+    --glass-light: rgba(255, 255, 255, 0.04);
     --shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
     --transition: 0.24s ease;
 }
 
 .sidebar {
     padding: 24px 14px;
-    background: rgba(11, 20, 15, 0.96);
-    border-right-color: rgba(222, 239, 222, 0.08);
+    background: rgba(15, 23, 42, 0.97);
+    border-right-color: rgba(255, 255, 255, 0.08);
     box-shadow: 8px 0 32px rgba(0, 0, 0, 0.16);
 }
 
@@ -2963,15 +2963,15 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 }
 
 .logo-icon {
-    border-color: rgba(216, 239, 138, 0.18);
-    background: rgba(216, 239, 138, 0.08);
+    border-color: rgba(251, 191, 36, 0.18);
+    background: rgba(251, 191, 36, 0.08);
     color: var(--primary);
     box-shadow: none;
 }
 
 .logo-icon:hover {
-    background: rgba(216, 239, 138, 0.14);
-    box-shadow: 0 8px 24px rgba(181, 217, 92, 0.12);
+    background: rgba(251, 191, 36, 0.14);
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.12);
 }
 
 .logo-name {
@@ -2992,12 +2992,12 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 }
 
 .sidebar-nav li a:hover {
-    background: rgba(235, 248, 231, 0.06);
+    background: rgba(255, 255, 255, 0.06);
     transform: none;
 }
 
 .sidebar-nav li.active a {
-    background: rgba(216, 239, 138, 0.10);
+    background: rgba(251, 191, 36, 0.12);
     color: var(--primary);
     box-shadow: inset 3px 0 0 var(--primary);
 }
@@ -3030,7 +3030,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 
 .topbar p {
     margin-top: 7px;
-    color: #9EAEA3;
+    color: #94A3B8;
     font-size: 13px;
 }
 
@@ -3039,14 +3039,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     padding: 8px 14px 8px 8px;
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: rgba(235, 248, 231, 0.035);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .user-avatar {
     width: 42px;
     height: 42px;
     min-width: 42px;
-    background: rgba(216, 239, 138, 0.13);
+    background: rgba(251, 191, 36, 0.13);
     color: var(--primary);
     font-size: 16px;
 }
@@ -3074,7 +3074,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .panel {
     border: 1px solid var(--border);
     border-radius: 18px;
-    background: linear-gradient(145deg, rgba(23, 38, 29, 0.94), rgba(16, 28, 22, 0.94));
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.94));
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -3094,7 +3094,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .card:hover,
 .panel:hover {
     transform: translateY(-2px);
-    border-color: rgba(216, 239, 138, 0.20);
+    border-color: rgba(251, 191, 36, 0.20);
     box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
 }
 
@@ -3108,23 +3108,23 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 }
 
 .card-icon.humidity {
-    background: rgba(101, 214, 164, 0.14);
-    color: #83E2B8;
+    background: #22C55E;
+    color: #FFFFFF;
 }
 
 .card-icon.temperature {
-    background: rgba(241, 120, 120, 0.14);
-    color: #F39A8F;
+    background: #EF4444;
+    color: #FFFFFF;
 }
 
 .card-icon.battery {
-    background: rgba(130, 184, 244, 0.14);
-    color: #92C5F5;
+    background: #3B82F6;
+    color: #FFFFFF;
 }
 
 .card-icon.pump {
-    background: rgba(216, 239, 138, 0.14);
-    color: var(--primary);
+    background: #FBBF24;
+    color: #111827;
 }
 
 .card-info h3 {
@@ -3152,7 +3152,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 }
 
 .panel-subtitle {
-    color: #91A398;
+    color: #94A3B8;
     font-size: 12px;
     line-height: 1.55;
 }
@@ -3163,9 +3163,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .admin-metric,
 .dashboard-device-item,
 .connection-guide-step {
-    border: 1px solid rgba(222, 239, 222, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 13px;
-    background: rgba(235, 248, 231, 0.035);
+    background: rgba(255, 255, 255, 0.04);
 }
 
 .status-list {
@@ -3177,7 +3177,7 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 }
 
 .status-item span {
-    color: #A7B5AA;
+    color: #CBD5E1;
     font-size: 13px;
 }
 
@@ -3191,30 +3191,30 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 
 .actions-grid button {
     min-height: 50px;
-    border: 1px solid rgba(222, 239, 222, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    background: rgba(235, 248, 231, 0.05);
+    background: rgba(255, 255, 255, 0.05);
     color: var(--text);
     font-size: 12px;
 }
 
 .actions-grid button:hover {
-    border-color: rgba(216, 239, 138, 0.28);
-    background: rgba(216, 239, 138, 0.09);
+    border-color: rgba(251, 191, 36, 0.28);
+    background: rgba(251, 191, 36, 0.09);
     box-shadow: none;
     transform: translateY(-1px);
 }
 
 #btnPumpOn {
-    color: #8BE0B9;
+    color: #22C55E;
 }
 
 #btnPumpOff {
-    color: #F1948E;
+    color: #EF4444;
 }
 
 #btnRefresh {
-    color: #9BC8F4;
+    color: #60A5FA;
 }
 
 #btnDevices,
@@ -3228,13 +3228,13 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 
 .panel-action,
 .notification-button {
-    border: 1px solid rgba(222, 239, 222, 0.08);
-    background: rgba(235, 248, 231, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .panel-action:hover,
 .notification-button:hover {
-    background: rgba(216, 239, 138, 0.10);
+    background: rgba(251, 191, 36, 0.10);
     color: var(--primary);
 }
 
@@ -3246,9 +3246,9 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .page-card select,
 .page-card textarea {
     min-height: 46px;
-    border-color: rgba(222, 239, 222, 0.12);
+    border-color: rgba(255, 255, 255, 0.10);
     border-radius: 11px;
-    background: #101A14;
+    background: #111B2E;
 }
 
 .simulador-form input:focus,
@@ -3258,8 +3258,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
 .page-card input:focus,
 .page-card select:focus,
 .page-card textarea:focus {
-    border-color: rgba(216, 239, 138, 0.65);
-    box-shadow: 0 0 0 3px rgba(216, 239, 138, 0.10);
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.10);
 }
 
 .connection-guide-step {
