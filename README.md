@@ -58,13 +58,9 @@ Sensores → ESP32 → API → Banco Turso → Dashboard web
 - Módulo TP4056
 - Conversor step-up
 - Sensor de umidade do solo
-- Sensor de nível da água
-- Sensor de corrente, como ACS712 ou INA219
-- Sensor de tensão da bateria
 - Módulo relé
 - Mini bomba de água
 - Reservatório e mangueira
-- LEDs de indicação opcionais
 
 O firmware atual já trabalha com umidade do solo, nível da água, bateria e
 relé da bomba. Sensores de corrente, clima e geração solar detalhada ficam
@@ -106,8 +102,6 @@ tabela de partições e aplicação. Veja mais detalhes em
 
 A dashboard apresenta o estado do ESP selecionado:
 
-- As leituras dos sensores são consultadas na dashboard; não há uma aba
-  separada de Sensores.
 - Umidade do solo.
 - Temperatura, quando disponível.
 - Bateria.
