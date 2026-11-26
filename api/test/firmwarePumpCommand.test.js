@@ -1,0 +1,38 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+
+const firmwarePath = path.join(__dirname, '..', '..', 'esp32-firmware', 'solarbeam_firmware.ino');
+const firmware = fs.readFileSync(firmwarePath, 'utf8');
+
+test('o firmware nao desliga a bomba automaticamente em modo manual', () => {
+  assert.doesNotMatch(
+    firmware,
+    /if \(modoOperacao != "automatico" && bombaLigada\(\)\) definirBomba\(false\);/,
+    'O firmware não deve forçar desligamento automático quando o modo é manual.'
+  );
+});
+
+test('um comando aplicado tem prioridade sobre a automacao no mesmo ciclo', () => {
+  assert.match(firmware, /bool comandoAplicado = false;/);
+  assert.match(firmware, /comandoAplicado = verificarComandoPendente\(\);/);
+  assert.match(firmware, /if \(!modoConfigAtivo && !comandoAplicado\) \{\s*executarIrrigacaoAutomatica\(\);/);
+});
+
+test('o desligamento manual bloqueia a automacao ate um novo comando', () => {
+  assert.match(firmware, /unsigned long bloqueioAutomaticoAte = 0;/);
+  assert.match(firmware, /if \(bloqueioAutomaticoAte != 0 && \(long\)\(agora - bloqueioAutomaticoAte\) < 0\)/);
+  assert.match(firmware, /bloqueioAutomaticoAte = ligar \? 0 : millis\(\) \+ BLOQUEIO_APOS_COMANDO_MANUAL_MS;/);
+});
+
+test('salvar novamente o modo automatico libera o bloqueio manual', () => {
+  assert.match(firmware, /int novaVersao = doc\["versao"\] \| -1;/);
+  assert.match(firmware, /if \(novoModo == "automatico" && novaVersao != versaoConfiguracao\) bloqueioAutomaticoAte = 0;/);
+});
+
+test('o firmware emite sinal imediato ao ligar e desligar a bomba', () => {
+  assert.match(firmware, /void notificarMudancaEstadoBomba\(bool ligada\)/);
+  assert.match(firmware, /SINAL_BOMBA:/);
+  assert.match(firmware, /if \(mudou\)\s*\{\s*notificarMudancaEstadoBomba\(ligada\);/s);
+});
