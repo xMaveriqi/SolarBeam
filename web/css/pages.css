@@ -1595,3 +1595,30 @@ body {
         padding-right: 8px;
     }
 }
+
+/* Mesma linguagem visual do dashboard nas páginas internas. */
+.page-header, .page-card {
+    background: var(--ui-surface);
+    border-color: var(--ui-border);
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow);
+    min-width: 0;
+}
+.page-card:hover { transform: none; box-shadow: var(--ui-shadow); }
+.metric-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); }
+.field input, .field select, .field textarea {
+    background: var(--ui-control);
+    border-color: var(--ui-border);
+    border-radius: var(--ui-control-radius);
+    min-width: 0;
+}
+.primary-button, .secondary-button, .danger-button {
+    border-radius: var(--ui-control-radius);
+    min-height: 44px;
+    line-height: 1.4;
+}
+.secondary-button { background: var(--ui-control); border-color: var(--ui-border); }
+.danger-button { background: #7f303b; color: #fff; }
+.button-row { flex-wrap: wrap; }
+.table-wrap { max-width: 100%; overflow-x: auto; }
+.data-table tbody tr:hover { background: rgba(148, 163, 184, .07); }

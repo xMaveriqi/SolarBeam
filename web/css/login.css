@@ -973,3 +973,15 @@
         margin-bottom: 22px;
     }
 }
+/* Login integrado à identidade visual das páginas internas. */
+.login-card {
+    background: var(--ui-surface);
+    border-color: var(--ui-border);
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+.input-field { background: var(--ui-control); border-color: var(--ui-border); border-radius: var(--ui-control-radius); }
+.login-button { background: var(--primary); border-radius: var(--ui-control-radius); box-shadow: none; }
+.login-button:not(:disabled):hover { background: var(--primary-dark); box-shadow: none; }

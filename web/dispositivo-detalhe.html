@@ -143,6 +143,7 @@
                     <div class="panel-header">
                         <h2>Status</h2>
                     </div>
+                    <p id="leituraMensagem" class="device-reading-message" role="status" hidden></p>
                     <div class="status-list">
                         <div class="status-item">
                             <span>Última Atualização</span>
@@ -171,46 +172,6 @@
                     </div>
                 </article>
 
-                <article class="panel">
-                    <div class="panel-header">
-                        <h2>Simulador de Leitura</h2>
-                        <p class="panel-subtitle">Ferramenta opcional para testar a interface sem o ESP32. Ela não interfere nos comandos reais enviados ao hardware.</p>
-                    </div>
-                    <form id="simuladorForm" class="simulador-form device-simulator-form">
-                        <div class="simulador-campo">
-                            <label for="simUmidade">Umidade (%)</label>
-                            <input type="number" id="simUmidade" value="55" min="0" max="100" required>
-                        </div>
-                        <div class="simulador-campo">
-                            <label for="simNivelAgua">Nível de água (%)</label>
-                            <input type="number" id="simNivelAgua" value="80" min="0" max="100" required>
-                        </div>
-                        <div class="simulador-campo">
-                            <label for="simBateria">Bateria (V)</label>
-                            <input type="number" id="simBateria" value="4.1" step="0.01" min="0" max="5" required>
-                        </div>
-                        <div class="simulador-campo">
-                            <label for="simTemperatura">Temperatura do ar (°C)</label>
-                            <input type="number" id="simTemperatura" value="25" step="0.1" min="-20" max="80" required>
-                        </div>
-                        <div class="simulador-campo">
-                            <label for="simUmidadeAr">Umidade do ar (%)</label>
-                            <input type="number" id="simUmidadeAr" value="60" step="0.1" min="0" max="100" required>
-                        </div>
-                        <div class="simulador-campo">
-                            <label for="simBomba">Bomba</label>
-                            <select id="simBomba">
-                                <option value="false">Desligada</option>
-                                <option value="true">Ligada</option>
-                            </select>
-                        </div>
-                        <button type="submit" id="btnEnviarSimulacao" class="device-simulator-button">
-                            <i class="fa-solid fa-paper-plane"></i>
-                            Enviar Leitura Falsa
-                        </button>
-                    </form>
-                    <p id="simuladorMensagem" class="simulador-mensagem"></p>
-                </article>
 
             </section>
         </main>

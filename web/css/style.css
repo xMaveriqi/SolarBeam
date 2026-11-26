@@ -69,6 +69,14 @@ button:disabled {
     /* Bordas */
     --border: rgba(255, 255, 255, 0.08);
 
+    /* Tokens compartilhados por todas as telas */
+    --ui-surface: #172235;
+    --ui-control: #111b2e;
+    --ui-border: rgba(148, 163, 184, .20);
+    --ui-radius: 16px;
+    --ui-control-radius: 10px;
+    --ui-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+
     /* Compatibilidade com outros CSS */
     --primary: var(--solar-yellow);
     --primary-dark: var(--solar-yellow-dark);
@@ -439,3 +447,6 @@ body::after {
         transition-duration: 0.01ms !important;
     }
 }
+
+button, input, select, textarea { font-family: inherit; }
+button:disabled { cursor: not-allowed; }

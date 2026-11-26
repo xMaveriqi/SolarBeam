@@ -1122,31 +1122,11 @@
 
 /* Botões */
 
-#btnPumpOn {
-    background: #22C55E;
-}
 
-#btnPumpOff {
-    background: #EF4444;
-}
 
-#btnRefresh {
-    background: #3B82F6;
-}
 
-#btnDevices {
-    background: #6366F1;
-}
 
-#btnHistory {
-    background: #8B5CF6;
-}
 
-#btnSettings {
-    background: #FBBF24;
-
-    color: #111827;
-}
 
 
 /* ==========================================================
@@ -2886,13 +2866,7 @@ body {
     min-height: 52px;
 }
 
-.device-detail-page .device-simulator-form {
-    gap: 14px;
-}
 
-.device-detail-page .device-simulator-button {
-    margin-top: 4px;
-}
 
 @media (max-width: 900px) {
     .device-detail-page .device-detail-cards {
@@ -3205,26 +3179,10 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     transform: translateY(-1px);
 }
 
-#btnPumpOn {
-    color: #22C55E;
-}
 
-#btnPumpOff {
-    color: #EF4444;
-}
 
-#btnRefresh {
-    color: #60A5FA;
-}
 
-#btnDevices,
-#btnHistory {
-    color: #C0B2F3;
-}
 
-#btnSettings {
-    color: var(--primary);
-}
 
 .panel-action,
 .notification-button {
@@ -3371,4 +3329,65 @@ input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-
     .dashboard-summary-strip {
         grid-template-columns: 1fr;
     }
+}
+
+/* Acabamento compartilhado: superfícies estáveis e ações sem conflito de IDs. */
+.card, .panel, .summary-chip, .topbar {
+    background: var(--ui-surface);
+    border-color: var(--ui-border);
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow);
+    min-width: 0;
+}
+.card:hover, .panel:hover { transform: none; box-shadow: var(--ui-shadow); }
+.card-info { min-width: 0; overflow-wrap: anywhere; }
+.actions-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 10px;
+}
+.actions-grid button {
+    --action-accent: #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 10px;
+    min-width: 0;
+    min-height: 58px;
+    padding: 10px 12px;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-control-radius);
+    background: var(--ui-control);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+.actions-grid #btnPumpOn { --action-accent: #86efac; }
+.actions-grid #btnPumpOff { --action-accent: #fca5a5; }
+.actions-grid #btnRefresh { --action-accent: #93c5fd; }
+.actions-grid #btnSettings { --action-accent: #fbbf24; }
+.actions-grid button i {
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(148, 163, 184, .10);
+    color: var(--action-accent);
+    font-size: 14px;
+}
+.actions-grid button:not(:disabled):hover {
+    border-color: var(--action-accent);
+    background: #202e43;
+    filter: none;
+    transform: none;
+    box-shadow: none;
+}
+.actions-grid button:disabled { opacity: .55; filter: none; transform: none; }
+.device-reading-message { color: #fcd34d; font-size: 13px; margin-bottom: 12px; line-height: 1.6; }
+.device-detail-page .device-detail-panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+    .device-detail-page .device-detail-panels { grid-template-columns: 1fr; }
 }

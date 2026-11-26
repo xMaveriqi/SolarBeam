@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const dispositivoId = params.get("id");
     const dispositivoCodigo = params.get("codigo");
-    let dispositivoToken = params.get("token");
     const dispositivoNome = params.get("nome");
 
     if (!dispositivoId) {
@@ -21,13 +20,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const lastUpdate = document.getElementById("lastUpdate");
     const btnRefresh = document.getElementById("btnRefresh");
 
+    const leituraMensagem = document.getElementById("leituraMensagem");
+
     carregarStatus();
 
     document.getElementById("btnPumpOn").addEventListener("click", () => enviarComando(true));
     document.getElementById("btnPumpOff").addEventListener("click", () => enviarComando(false));
     btnRefresh.addEventListener("click", carregarStatus);
 
-    document.getElementById("simuladorForm").addEventListener("submit", enviarLeituraSimulada);
 
     async function carregarStatus() {
         btnRefresh.disabled = true;
@@ -39,13 +39,15 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (resposta.status === 404) {
-                mostrarMensagemSimulador("Nenhuma leitura para este dispositivo ainda. Use o simulador abaixo.", "warning");
+                leituraMensagem.textContent = "Aguardando a primeira leitura do ESP32.";
+                leituraMensagem.hidden = false;
                 return;
             }
 
             if (!resposta.ok) throw new Error("Falha ao buscar status");
 
             const dados = await resposta.json();
+            leituraMensagem.hidden = true;
 
             soilHumidity.textContent = window.solarbeamFormatSensor(dados.umidade, 1, "%");
             if (umidadeAr) umidadeAr.textContent = window.solarbeamFormatSensor(dados.umidadeAr, 1, "%");
@@ -54,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (err) {
             console.error("Erro ao buscar status:", err);
+            leituraMensagem.textContent = "Não foi possível atualizar as leituras. Tente novamente.";
+            leituraMensagem.hidden = false;
         } finally {
             btnRefresh.disabled = false;
             btnRefresh.innerHTML = `<i class="fa-solid fa-rotate"></i> Atualizar`;
@@ -95,57 +99,4 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function enviarLeituraSimulada(event) {
-        event.preventDefault();
-
-        const umidade = parseFloat(document.getElementById("simUmidade").value);
-        const nivelAguaValor = parseFloat(document.getElementById("simNivelAgua").value);
-        const bateria = parseFloat(document.getElementById("simBateria").value);
-        const temperatura = parseFloat(document.getElementById("simTemperatura").value);
-        const umidadeAr = parseFloat(document.getElementById("simUmidadeAr").value);
-        const bomba = document.getElementById("simBomba").value === "true";
-
-        if (!dispositivoToken) {
-            const dispositivosResposta = await fetch(`${API_URL}/api/dispositivos`, {
-                headers: solarbeamAuthHeaders(),
-            });
-            const dispositivos = await dispositivosResposta.json();
-            dispositivoToken = dispositivos.find((item) => String(item.id) === String(dispositivoId))?.token_dispositivo;
-        }
-
-        try {
-            const resposta = await fetch(`${API_URL}/api/sensores`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    umidade,
-                    nivelAgua: nivelAguaValor,
-                    bateria,
-                    bomba,
-                    codigoDispositivo: dispositivoCodigo,
-                    tokenDispositivo: dispositivoToken,
-                }),
-            });
-
-            const dados = await resposta.json();
-
-            if (!resposta.ok) {
-                mostrarMensagemSimulador(dados.erro || "Erro ao enviar leitura.", "error");
-                return;
-            }
-
-            mostrarMensagemSimulador("Leitura de teste enviada. O controle da bomba continua sendo feito pelo comando real do ESP32.", "success");
-            carregarStatus();
-
-        } catch (err) {
-            console.error("Erro ao enviar leitura simulada:", err);
-            mostrarMensagemSimulador("Não foi possível conectar ao servidor.", "error");
-        }
-    }
-
-    function mostrarMensagemSimulador(texto, tipo) {
-        const el = document.getElementById("simuladorMensagem");
-        el.textContent = texto;
-        el.className = `simulador-mensagem ${tipo}`;
-    }
 });
