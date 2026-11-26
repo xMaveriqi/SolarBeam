@@ -28,7 +28,11 @@ test('o desligamento manual bloqueia a automacao ate um novo comando', () => {
 
 test('salvar novamente o modo automatico libera o bloqueio manual', () => {
   assert.match(firmware, /int novaVersao = doc\["versao"\] \| -1;/);
-  assert.match(firmware, /if \(novoModo == "automatico" && novaVersao != versaoConfiguracao\) bloqueioAutomaticoAte = 0;/);
+  assert.match(firmware, /if \(novoModo == "automatico"\) \{\s*bloqueioAutomaticoAte = 0;/);
+});
+
+test('reaplicar configuracao automatica reinicia a pausa e a avaliacao da irrigacao', () => {
+  assert.match(firmware, /if \(novoModo == "automatico"\) \{\s*bloqueioAutomaticoAte = 0;\s*ultimoFimIrrigacao = 0;\s*ultimaAvaliacaoAutomatica = 0;\s*contagemSeco = 0;\s*atrasoInicialAutomaticoPendente = false;/);
 });
 
 test('o firmware emite sinal imediato ao ligar e desligar a bomba', () => {

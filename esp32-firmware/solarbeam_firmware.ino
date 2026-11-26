@@ -75,6 +75,7 @@ unsigned long ultimoFimIrrigacao = 0;
 unsigned long ultimaAvaliacaoAutomatica = 0;
 int contagemSeco = 0;
 unsigned long bloqueioAutomaticoAte = 0;
+bool atrasoInicialAutomaticoPendente = true;
 
 bool configuracaoDisponivel = false;
 float umidadeMinima = 30.0;
@@ -244,8 +245,12 @@ void executarIrrigacaoAutomatica() {
     contagemSeco = 0;
     return;
   }
-  if (agora < ATRASO_INICIAL_AUTOMATICO_MS) return;
-  if (agora - ultimaAvaliacaoAutomatica < INTERVALO_AUTOMATICO_MS) return;
+  if (atrasoInicialAutomaticoPendente) {
+    if (agora < ATRASO_INICIAL_AUTOMATICO_MS) return;
+    atrasoInicialAutomaticoPendente = false;
+  }
+  if (ultimaAvaliacaoAutomatica != 0 &&
+      agora - ultimaAvaliacaoAutomatica < INTERVALO_AUTOMATICO_MS) return;
   ultimaAvaliacaoAutomatica = agora;
 
   float umidade = lerUmidade();
@@ -460,8 +465,6 @@ void atualizarConfiguracao() {
                novaUmidade != umidadeMinima || novoTempo != tempoBombaMs ||
                novaVersao != versaoConfiguracao;
 
-  if (novoModo == "automatico" && novaVersao != versaoConfiguracao) bloqueioAutomaticoAte = 0;
-
   modoOperacao = novoModo;
   umidadeMinima = novaUmidade;
   tempoBombaMs = novoTempo;
@@ -469,6 +472,14 @@ void atualizarConfiguracao() {
   configuracaoDisponivel = true;
 
   if (mudou) {
+    if (novoModo == "automatico") {
+      bloqueioAutomaticoAte = 0;
+      ultimoFimIrrigacao = 0;
+      ultimaAvaliacaoAutomatica = 0;
+      contagemSeco = 0;
+      atrasoInicialAutomaticoPendente = false;
+    }
+
     preferencias.putString("modo", modoOperacao);
     preferencias.putFloat("um_min", umidadeMinima);
     preferencias.putULong("tempo_ms", tempoBombaMs);
