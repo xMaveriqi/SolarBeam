@@ -264,3 +264,13 @@ mesclado para gravacao; o segundo permite conferir a integridade do download.
 9. Testes.
 10. Documentação final.
 11. Preparação para apresentação.
+
+## Revisão de integração (26/11/2026)
+
+- API: limite geral ampliado para 1200 requisições por 15 minutos por IP; logs sem query strings; tokens de dispositivo obrigatórios e validados como texto.
+- WebSocket: autenticação JWT e filtragem por proprietário; frontend atualizado junto com a API. Sessões WebSocket existentes ainda dependem da validade do JWT.
+- Histórico: horário UTC-3 independente do fuso do servidor e limite de resultados positivo.
+- Configurações: validação de intervalos compatível com os limites já existentes no firmware. A configuração continua global; não foi migrada para configuração individual.
+- Provisionamento: liberação do escritor serial, ocultação do token nos logs e espera de até dois minutos pela primeira leitura.
+- Banco: índices de consultas e bloqueio da exclusão de usuários com dispositivos associados. JWT_SECRET deve ser configurado explicitamente.
+- Pendências: firmware usa TLS sem validação de certificado (`setInsecure`); requer revisão de certificados antes de produção. A indicação de energia solar é inferida da bateria, não mede geração solar. Existem dois arquivos SQLite no ZIP original; a API usa `data/solarbeam.db` relativo ao diretório de execução quando Turso não está configurado. Não foram alterados os bancos existentes, firmware, pinagem ou controle físico. Não foi feita compilação Arduino nem teste físico ou em Render/Turso. Não publique `.env` ou bancos com dados reais; revise e rotacione credenciais que tenham sido compartilhadas.

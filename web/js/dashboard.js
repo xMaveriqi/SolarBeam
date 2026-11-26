@@ -136,6 +136,7 @@ document.addEventListener("DOMContentLoaded", () => {
         socketRealtime = new WebSocket(wsUrl);
 
         socketRealtime.addEventListener("open", () => {
+            socketRealtime.send(JSON.stringify({ token: localStorage.getItem("solarbeam_token") }));
             console.info("WebSocket conectado para atualizações ao vivo.");
             if (socketReconnectTimer) {
                 window.clearTimeout(socketReconnectTimer);

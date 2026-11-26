@@ -26,7 +26,9 @@ app.use(cors({
   },
 }));
 
-app.use(morgan('dev'));
+// Nao registra query strings: o firmware envia credenciais nelas.
+morgan.token('safe-url', req => req.path);
+app.use(morgan(':method :safe-url :status :response-time ms'));
 // Permite enviar fotos do ESP em Base64 sem estourar o limite padrão de ~100 KB do Express.
 app.use(express.json({ limit: '5mb' }));
 
@@ -42,7 +44,8 @@ const limiteLogin = rateLimit({
 // Limite geral mais folgado para o resto da API
 const limiteGeral = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 300,
+  max: 1200,
+  message: { erro: 'Limite de requisicoes atingido. Tente novamente mais tarde.' },
   standardHeaders: true,
   legacyHeaders: false,
 });

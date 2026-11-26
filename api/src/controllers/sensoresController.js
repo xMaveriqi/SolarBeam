@@ -23,7 +23,7 @@ function normalizarEstadoBomba(valor) {
 }
 
 function tokenValido(esperado, recebido) {
-  if (!esperado || !recebido) return false;
+  if (typeof esperado !== 'string' || typeof recebido !== 'string' || !esperado || !recebido) return false;
 
   const bufEsperado = Buffer.from(esperado);
   const bufRecebido = Buffer.from(recebido);
@@ -71,7 +71,7 @@ async function receberLeitura(req, res) {
     let dispositivoId = null;
 
     const dispositivo = await db.execute({
-      sql: `SELECT id, token_dispositivo FROM dispositivos WHERE codigo = ?`,
+      sql: `SELECT id, usuario_id, token_dispositivo FROM dispositivos WHERE codigo = ?`,
       args: [codigoDispositivo],
     });
 
@@ -79,7 +79,7 @@ async function receberLeitura(req, res) {
       return res.status(404).json({ erro: 'Codigo de dispositivo nao reconhecido.' });
     }
 
-    if (dispositivo.rows[0].token_dispositivo && !tokenValido(dispositivo.rows[0].token_dispositivo, tokenDispositivo)) {
+    if (!tokenValido(dispositivo.rows[0].token_dispositivo, tokenDispositivo)) {
       return res.status(401).json({ erro: 'Token do dispositivo invalido.' });
     }
 
@@ -122,7 +122,7 @@ async function receberLeitura(req, res) {
       bateriaPercentual: bateria == null ? null : Math.max(0, Math.min(100, Math.round(((Number(bateria) - 3) / 1.2) * 100))),
     };
 
-    broadcastStatusUpdate(eventoStatus);
+    broadcastStatusUpdate(eventoStatus, dispositivo.rows[0].usuario_id);
 
     res.status(201).json({ mensagem: 'Leitura salva com sucesso.' });
   } catch (err) {

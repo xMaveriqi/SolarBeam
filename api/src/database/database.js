@@ -100,5 +100,7 @@ async function initDatabase() {
   `);
   await adicionarColunaSeNaoExistir('comandos', 'dispositivo_id', 'dispositivo_id INTEGER');
 
-  console.log('Banco de dados inicializado (Turso).');
+  await db.execute('CREATE INDEX IF NOT EXISTS idx_leituras_dispositivo ON leituras(dispositivo_id, id)');
+  await db.execute('CREATE INDEX IF NOT EXISTS idx_comandos_pendentes ON comandos(dispositivo_id, executado, id)');
+  console.log('Banco de dados inicializado.');
 }

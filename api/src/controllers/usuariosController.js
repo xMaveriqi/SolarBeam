@@ -61,6 +61,8 @@ async function removerUsuario(req, res) {
       return res.status(404).json({ erro: 'Usuario nao encontrado.' });
     }
 
+    const dispositivos = await db.execute({ sql: 'SELECT id FROM dispositivos WHERE usuario_id = ?', args: [id] });
+    if (dispositivos.rows.length) return res.status(409).json({ erro: 'Remova os dispositivos do usuario antes de excluir a conta.' });
     await db.execute({ sql: `DELETE FROM usuarios WHERE id = ?`, args: [id] });
 
     res.json({ mensagem: 'Usuario removido com sucesso.' });

@@ -2,7 +2,7 @@ const { db } = require('../database/database');
 const crypto = require('crypto');
 
 function tokenValido(esperado, recebido) {
-  if (!esperado || !recebido) return false;
+  if (typeof esperado !== 'string' || typeof recebido !== 'string' || !esperado || !recebido) return false;
   const esperadoBuffer = Buffer.from(esperado);
   const recebidoBuffer = Buffer.from(recebido);
   return esperadoBuffer.length === recebidoBuffer.length &&
@@ -41,8 +41,8 @@ async function atualizarConfig(req, res) {
   const { umidadeMinima, tempoBomba, modo } = req.body;
 
   if (
-    typeof umidadeMinima !== 'number' ||
-    typeof tempoBomba !== 'number' ||
+    !Number.isFinite(umidadeMinima) || umidadeMinima < 0 || umidadeMinima > 100 ||
+    !Number.isInteger(tempoBomba) || tempoBomba < 1 || tempoBomba > 3600 ||
     !['automatico', 'manual'].includes(modo)
   ) {
     return res.status(400).json({

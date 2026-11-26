@@ -287,16 +287,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 await porta.open({ baudRate: 115200 });
                 lerSerialContinuamente();
             }
+            if (!dispositivo.token_dispositivo) throw new Error("Token do dispositivo ausente.");
             const confirmacao = aguardarConfirmacaoSerial();
-            const textEncoder = new TextEncoderStream();
-            textEncoder.readable.pipeTo(porta.writable);
-            writer = textEncoder.writable.getWriter();
-
-            const comando = JSON.stringify({ comando: "configurar", codigo, token: dispositivo.token_dispositivo || "" }) + "\n";
-            await writer.write(comando);
-            writer.releaseLock();
-
-            escreverLog("Enviado: " + comando.trim());
+            // Evita rejeicao nao tratada se a escrita serial falhar.
+            confirmacao.catch(() => {});
+            const comando = JSON.stringify({ comando: "configurar", codigo, token: dispositivo.token_dispositivo }) + "\n";
+            const serialWriter = porta.writable.getWriter();
+            try {
+                await serialWriter.write(new TextEncoder().encode(comando));
+            } finally {
+                serialWriter.releaseLock();
+            }
+            escreverLog("Código enviado: " + codigo);
             await confirmacao;
             provisionarMensagem.textContent = "ESP confirmado. Aguardando a primeira leitura...";
             provisionarMensagem.className = "simulador-mensagem success";
@@ -447,10 +449,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function aguardarPrimeiraLeitura(id) {
-        for (let tentativa = 0; tentativa < 15; tentativa += 1) {
+        for (let tentativa = 0; tentativa < 60; tentativa += 1) {
             const resposta = await fetch(`${API_URL}/api/dispositivos`, {
                 headers: solarbeamAuthHeaders(),
             });
+            if (!resposta.ok) throw new Error(`Falha ao consultar dispositivo (HTTP ${resposta.status}).`);
             const dispositivos = await resposta.json();
             const dispositivoAtualizado = dispositivos.find((item) => String(item.id) === String(id));
             if (Number(dispositivoAtualizado?.firmware_configurado) === 1) return;

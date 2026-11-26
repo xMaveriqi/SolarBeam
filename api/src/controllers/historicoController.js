@@ -2,15 +2,15 @@ const { db } = require('../database/database');
 const { usuarioPodeAcessarDispositivo } = require('../middleware/deviceAccess');
 
 function paraHorarioBrasilia(dataHoraUTC) {
-  const dataUTC = new Date(dataHoraUTC + 'Z');
+  const dataUTC = new Date(String(dataHoraUTC).replace(' ', 'T') + 'Z');
   const dataBrasil = new Date(dataUTC.getTime() - 3 * 60 * 60 * 1000);
   const pad = (n) => String(n).padStart(2, '0');
-  return `${dataBrasil.getFullYear()}-${pad(dataBrasil.getMonth() + 1)}-${pad(dataBrasil.getDate())} ${pad(dataBrasil.getHours())}:${pad(dataBrasil.getMinutes())}:${pad(dataBrasil.getSeconds())}`;
+  return `${dataBrasil.getUTCFullYear()}-${pad(dataBrasil.getUTCMonth() + 1)}-${pad(dataBrasil.getUTCDate())} ${pad(dataBrasil.getUTCHours())}:${pad(dataBrasil.getUTCMinutes())}:${pad(dataBrasil.getUTCSeconds())}`;
 }
 
 // GET /api/historico?limite=50&dispositivo=ID
 async function obterHistorico(req, res) {
-  const limite = Math.min(parseInt(req.query.limite) || 50, 500);
+  const limite = Math.max(1, Math.min(parseInt(req.query.limite, 10) || 50, 500));
   const dispositivoId = req.query.dispositivo;
 
   try {

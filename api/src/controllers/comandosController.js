@@ -1,10 +1,9 @@
 const crypto = require('crypto');
 const { db } = require('../database/database');
 const { usuarioPodeAcessarDispositivo } = require('../middleware/deviceAccess');
-const { broadcastEvent } = require('../websocket');
 
 function tokenValido(esperado, recebido) {
-  if (!esperado || !recebido) return false;
+  if (typeof esperado !== 'string' || typeof recebido !== 'string' || !esperado || !recebido) return false;
   const bufEsperado = Buffer.from(esperado);
   const bufRecebido = Buffer.from(recebido);
   return bufEsperado.length === bufRecebido.length && crypto.timingSafeEqual(bufEsperado, bufRecebido);
@@ -42,13 +41,6 @@ async function criarComando(req, res) {
     await db.execute({
       sql: `INSERT INTO comandos (bomba, executado, dispositivo_id) VALUES (?, 0, ?)`,
       args: [bomba ? 1 : 0, dispositivoId],
-    });
-
-    broadcastEvent('comando', {
-      dispositivoId,
-      bomba,
-      status: 'pendente',
-      timestamp: Date.now(),
     });
 
     res.status(201).json({ mensagem: 'Comando registrado com sucesso.' });

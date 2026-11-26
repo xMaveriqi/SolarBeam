@@ -36,10 +36,10 @@ document.addEventListener("DOMContentLoaded", () => {
         mensagem.textContent = "";
 
         const umidadeMinima = parseFloat(humidityMin.value);
-        const tempoBomba = parseInt(pumpTime.value, 10);
+        const tempoBomba = Number(pumpTime.value);
         const modo = mode.value;
 
-        if (isNaN(umidadeMinima) || isNaN(tempoBomba)) {
+        if (!Number.isFinite(umidadeMinima) || umidadeMinima < 0 || umidadeMinima > 100 || !Number.isInteger(tempoBomba) || tempoBomba < 1 || tempoBomba > 3600) {
             mensagem.textContent = "Preencha os campos corretamente.";
             mensagem.className = "message error";
             return;

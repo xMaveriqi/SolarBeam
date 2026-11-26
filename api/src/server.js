@@ -1,7 +1,8 @@
 require('dotenv').config();
 
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = 'solarbeam-dev-secret-change-me';
+  console.error('Configure JWT_SECRET antes de iniciar a API.');
+  process.exit(1);
 }
 
 const http = require('http');
