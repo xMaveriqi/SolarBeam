@@ -14,7 +14,7 @@ turma **2DSA**:
 - Miguel Eduardo
 - Pedro Henrique
 
-O Solar Beam acompanha a umidade do solo, o nível do reservatório, a bateria e
+O Solar Beam acompanha a umidade do solo e
 o estado da bomba. Cada ESP32 pertence a um usuário e possui um código e um
 token próprios, mantendo as leituras e o histórico separados.
 
@@ -35,8 +35,6 @@ Sensores → ESP32 → API → Banco Turso → Dashboard web
 ## Principais recursos
 
 - Monitoramento da umidade do solo.
-- Monitoramento do nível da água.
-- Monitoramento da tensão da bateria.
 - Controle manual da bomba.
 - Configuração de irrigação automática ou manual.
 - Histórico separado por dispositivo.
@@ -56,14 +54,12 @@ Sensores → ESP32 → API → Banco Turso → Dashboard web
 - Painel solar de 5 V
 - Bateria 18650
 - Módulo TP4056
-- Conversor step-up
 - Sensor de umidade do solo
 - Módulo relé
 - Mini bomba de água
 - Reservatório e mangueira
 
-O firmware atual já trabalha com umidade do solo, nível da água, bateria e
-relé da bomba. Sensores de corrente, clima e geração solar detalhada ficam
+O firmware atual já trabalha com umidade do solo e relé da bomba. Sensores de corrente, clima e geração solar detalhada ficam
 como extensões planejadas do hardware.
 
 ## Dispositivos e firmware
@@ -104,7 +100,6 @@ A dashboard apresenta o estado do ESP selecionado:
 
 - Umidade do solo.
 - Temperatura, quando disponível.
-- Bateria.
 - Estado da bomba.
 - Wi-Fi e comunicação com o ESP.
 - Última atualização.
@@ -252,25 +247,15 @@ mesclado para gravacao; o segundo permite conferir a integridade do download.
 
 ## Fases do projeto
 
-0. Planejamento e documentação.
-1. Montagem do circuito.
-2. Programação do ESP32.
-3. Comunicação com a API.
-4. Desenvolvimento do site.
-5. Dashboard.
-6. Login e permissões.
-7. Monitoramento.
-8. Alertas.
-9. Testes.
-10. Documentação final.
-11. Preparação para apresentação.
-
-## Revisão de integração (26/11/2026)
-
-- API: limite geral ampliado para 1200 requisições por 15 minutos por IP; logs sem query strings; tokens de dispositivo obrigatórios e validados como texto.
-- WebSocket: autenticação JWT e filtragem por proprietário; frontend atualizado junto com a API. Sessões WebSocket existentes ainda dependem da validade do JWT.
-- Histórico: horário UTC-3 independente do fuso do servidor e limite de resultados positivo.
-- Configurações: validação de intervalos compatível com os limites já existentes no firmware. A configuração continua global; não foi migrada para configuração individual.
-- Provisionamento: liberação do escritor serial, ocultação do token nos logs e espera de até dois minutos pela primeira leitura.
-- Banco: índices de consultas e bloqueio da exclusão de usuários com dispositivos associados. JWT_SECRET deve ser configurado explicitamente.
-- Pendências: firmware usa TLS sem validação de certificado (`setInsecure`); requer revisão de certificados antes de produção. A indicação de energia solar é inferida da bateria, não mede geração solar. Existem dois arquivos SQLite no ZIP original; a API usa `data/solarbeam.db` relativo ao diretório de execução quando Turso não está configurado. Não foram alterados os bancos existentes, firmware, pinagem ou controle físico. Não foi feita compilação Arduino nem teste físico ou em Render/Turso. Não publique `.env` ou bancos com dados reais; revise e rotacione credenciais que tenham sido compartilhadas.
+0. Planejamento e documentação. ✅
+1. Montagem do circuito.✅
+2. Programação do ESP32.✅
+3. Comunicação com a API.✅
+4. Desenvolvimento do site.✅
+5. Dashboard.✅
+6. Login e permissões.✅
+7. Monitoramento.✅
+8. Alertas.✅
+9. Testes.✅
+10. Documentação final.✅
+11. Preparação para apresentação.✅
